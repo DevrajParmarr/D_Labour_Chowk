@@ -1,6 +1,5 @@
 # D_Labour_Chowk
 
-Here's the README file content formatted and ready for you to paste:
 
 ---
 
