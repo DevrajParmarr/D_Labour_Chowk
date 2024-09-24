@@ -10,7 +10,7 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $search = mysqli_real_escape_string($conn, $_POST['search']);
+    // $search = mysqli_real_escape_string($conn, $_POST['search']);
     $city = mysqli_real_escape_string($conn, $_POST['city']);
     $jobTitle = mysqli_real_escape_string($conn, $_POST['jobTitle']);
 }
