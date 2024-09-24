@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .job-form{
+            display: flexbox;
+            justify-content: center;
+            width: 50%;
+            margin: auto;
+            border: 2px solid red;
+            background-color: antiquewhite;
+            padding:20px;
+            align-content: center ;
+        }
+
+        #jobPostForm{
+            display: inline-flex;
+            flex-direction: column;
+            align-self: first baseline; 
+        }
+
+        input{
+            width: 300px;
+            height: 30px;
+            padding: 4px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="job-form">
+        <h2>Create a Job Post</h2>
+        <form id="jobPostForm">
+            <label for="jobTitle">Job Title:</label>
+            <input type="text" id="jobTitle" name="jobTitle" placeholder="E.g., Electrician Needed for Wiring" required>
+
+            <label for="jobDescription">Job Description:</label>
+            <textarea id="jobDescription" name="jobDescription" placeholder="Describe the job requirements..." required></textarea>
+
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" placeholder="E.g., Building No. 5, Block A" required>
+
+            <label for="budget">Budget:</label>
+            <input type="number" id="budget" name="budget" placeholder="Enter your budget" required>
+
+            <label for="jobType">Job Type:</label>
+            <select id="jobType" name="jobType" required>
+                <option value="full-time">Full-Time</option>
+                <option value="part-time">Part-Time</option>
+                <option value="one-time">One-Time</option>
+            </select>
+
+            <button type="submit">Post Job</button>
+        </form>
+    </div>
+
+</body>
+</html>
