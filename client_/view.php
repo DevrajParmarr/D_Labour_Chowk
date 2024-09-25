@@ -1,41 +1,9 @@
 <?php
 session_start();
 include "../Shared/sqlconnection.php";
-// $conn=new mysqli ("localhost", "root","", "acme", 3306);
 
-$sql_result=mysqli_query($conn, "select * from job_post where owner=$_SESSION[user_id]");
-//Loop sql_result and Fetch 1 dbrow at atime till the dbrow is NOT empty while($dbrow=mysqli_fetch_assoc($sql_result)){
-
-// echo "<br>";
-
-
+$sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = {$_SESSION['user_id']}");
 include "menu.html";
-
-while($dbrow=mysqli_fetch_assoc($sql_result)){
-    echo "<div class= 'pdt-container'>
-      <h4>Job Title : <span class='name'> $dbrow[jobTitle]</span></h4>
-      
-      <div class='location'>$dbrow[location]</div>
-
-      <h5>Salary : <span class='price'> $dbrow[salary]</span></h5>
-      
-      <img src='$dbrow[impath]'>
-
-      <h5>Detail : <span class='detail'> $dbrow[detail]</span></h5>
-
-      <div class='d-flex justify-content-centre gap-5'>
-       <a href='dltpost.php?post_ID=$dbrow[post_ID]'>
-        <button class='btn btn-danger w-100'>Delete Post</button>
-    </a>
-
-     <a href='interested_labour.php?post_ID=$dbrow[post_ID]'>
-        <button class='btn btn-warning w-100'>View Responses</button>
-    </a>
-    </div>
-   </div>";
-}
-
-// print_r($dbrow);
 ?>
 
 <!DOCTYPE html>
@@ -43,72 +11,156 @@ while($dbrow=mysqli_fetch_assoc($sql_result)){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
+    <title>My Job Posts</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-.location{
-    background-color:greeen;
-    font-size:14px;
-    font:bold;
-}
+        body {
+            background-color: #f4f4f4;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+        }
 
-.pdt-container{
-background-color:rgb(240, 162, 162);
-display:inline-block;
- margin:10px;
-padding:10px;
-width:21vw;
-border: 2px solid rgb(124, 133, 107);
-border-radius: 12px;
-/* height:400px; */
-margin:15px;
-padding:10px;
-vertical-align:top;
-}
-.pdt-container:hover{
-    box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
-}
-img{
-    width: 100%;
-    height:200px;
-    transition: transform .2s;
-}
-img:hover{
-    border-radius:20px;
-    transform: scale(1.03);
+        .container {
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
 
-}
+        h2 {
+            color: #007bff;
+            margin-bottom: 40px;
+            text-align: center;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
 
-.name{
-font-size: 24px;
-font-weight: bold;
-color: blueviolet;
-}
-.price{
-    font-size: 17px;
-    font-weight:bold;
-    
-}
-.detail .location{
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    background-color: red;
-    margin-top:6px;
-    padding:5px;
-    overflow-x: auto;
-}
+        .pdt-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            padding: 20px;
+            margin: 15px;
+            position: relative;
+            overflow: hidden;
+        }
 
-.price::before{
-content:" Rs";
-font-size: 18px;
-margin:4px;
-border-radius: 10px;
-}
+        .pdt-container:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
 
+        .pdt-container img {
+            width: 100%;
+            height: 200px;
+            border-radius: 5px;
+            object-fit: cover;
+            transition: transform 0.3s;
+            margin-bottom: 15px;
+        }
 
+        .pdt-container img:hover {
+            transform: scale(1.05);
+        }
 
+        .name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .location {
+            background-color: #28a745;
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .salary {
+            font-size: 22px;
+            font-weight: bold;
+            color: #dc3545;
+            margin: 10px 0;
+        }
+
+        .detail {
+            font-size: 15px;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            border: none;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .pdt-container {
+                margin: 10px;
+            }
+            .btn-container {
+                flex-direction: column;
+            }
+            .btn {
+                margin-bottom: 10px;
+            }
+        }
     </style>
 </head>
 <body>
-    
+
+<div class="container">
+    <h2>My Job Posts</h2>
+    <div class="row justify-content-center">
+        <?php
+        while ($dbrow = mysqli_fetch_assoc($sql_result)) {
+            echo "
+            <div class='col-lg-4 col-md-6 col-sm-12'>
+                <div class='pdt-container'>
+                    <h4>Job Title: <span class='name'>" . htmlspecialchars($dbrow['jobTitle']) . "</span></h4>
+                    <div class='location'>" . htmlspecialchars($dbrow['location']) . "</div>
+                    <h5 class='salary'>Salary: " . htmlspecialchars($dbrow['salary']) . " Rs</h5>
+                    <img src='" . htmlspecialchars($dbrow['impath']) . "' alt='Job Image'>
+                    <p class='detail'>Detail: <span>" . htmlspecialchars($dbrow['detail']) . "</span></p>
+                    <div class='btn-container'>
+                        <a href='dltpost.php?post_ID=" . $dbrow['post_ID'] . "'>
+                            <button class='btn btn-danger'>Delete Post</button>
+                        </a>
+                        <a href='interested_labour.php?post_ID=" . $dbrow['post_ID'] . "'>
+                            <button class='btn btn-warning'>View Responses</button>
+                        </a>
+                    </div>
+                </div>
+            </div>";
+        }
+        ?>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

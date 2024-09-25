@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id'])) {
 $laborer_id = $_SESSION['user_id'];
 
 // Prepare SQL query to fetch applied jobs
-$query = "SELECT job_post.* , job_applications.status FROM job_post 
+$query = "SELECT job_post.*, job_applications.status FROM job_post 
           JOIN job_applications ON job_post.post_ID = job_applications.job_post_id 
           WHERE job_applications.labour_id = ?";
 $stmt = $conn->prepare($query);
@@ -30,53 +30,110 @@ include "menu.html";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Applied Jobs</title>
-    <!-- Add your CSS here -->
     <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS file -->
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Roboto', sans-serif;
+            background-color: #e9ecef;
             margin: 0;
             padding: 20px;
+            color: #495057;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
         h1 {
             text-align: center;
-            color: #333;
+            color: #343a40;
+            margin-bottom: 30px;
+            font-size: 2.5em;
         }
         .job-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 30px;
         }
         .job-card {
             background: #ffffff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            transition: transform 0.2s;
+            border-radius: 10px;
+            padding: 25px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #007bff;
         }
         .job-card:hover {
-            transform: scale(1.05);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
         }
         .job-title {
-            font-size: 1.5em;
-            color: #007BFF;
+            font-size: 1.8em;
+            color: #007bff;
+            margin-bottom: 10px;
+            text-decoration: none;
         }
         .job-card p {
             margin: 5px 0;
-            color: #555;
+            line-height: 1.5;
+        }
+        .status {
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1.2em;
+        }
+        .status.approved {
+            color: #28a745; /* Green for approved status */
+        }
+        .status.pending {
+            color: #ffc107; /* Yellow for pending status */
+        }
+        .status.rejected {
+            color: #dc3545; /* Red for rejected status */
         }
         .no-jobs {
             text-align: center;
-            color: #888;
+            color: #868e96;
+            font-size: 1.3em;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .follow-up-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+        }
+        .follow-up-btn:hover {
+            background-color: #0056b3;
+        }
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            .job-title {
+                font-size: 1.5em;
+            }
+            .container {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -92,14 +149,12 @@ include "menu.html";
                 echo "
                 <div class='job-card'>
                     <h2 class='job-title'>{$job['jobTitle']}</h2>
-                     
-                    
                     <p><strong>Location:</strong> {$job['location']}</p>
-                    <p><strong>Salary:</strong> {$job['salary']}</p>
-                    <p>{$job['detail']}</p>
-                     <div> <h4 class='job-title'>{$job['status']}</h4></div>
+                    <p><strong>Salary:</strong> Rs {$job['salary']}</p>
+                    <p><strong>Description:</strong> {$job['detail']}</p>
+                    <h4 class='status {$job['status']}'>{$job['status']}</h4>
+                    <button onclick=\"alert('You can follow up with the client about this job!')\" class='follow-up-btn'>Follow Up</button>
                 </div>
-               
                 ";
             }
         } else {
@@ -108,6 +163,18 @@ include "menu.html";
         ?>
     </div>
 </div>
+
+
+<script>
+  // Optional JavaScript for enhancing interactivity
+document.querySelectorAll('.follow-up-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        button.innerHTML = 'Followed'; // Corrected assignment
+        button.disabled = true; // Optional: disable the button after clicking
+    });
+});
+
+</script>
 
 </body>
 </html>

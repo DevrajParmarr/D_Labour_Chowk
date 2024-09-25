@@ -321,12 +321,6 @@ include "menu.html";
         ?>
     </div>
 
-    <div id="profileOverlay" class="profile-overlay">
-        <div class="profile-content">
-            <span class="close-profile" onclick="closeProfile()">&times;</span>
-            <div id="profileData"></div>
-        </div>
-    </div>
 
     <div class="pagination">
         <?php if ($page > 1): ?>
@@ -341,6 +335,15 @@ include "menu.html";
     </div>
 </div>
 
+
+    <div id="profileOverlay" class="profile-overlay">
+        <div class="profile-content">
+            <span class="close-profile" onclick="closeProfile()">&times;</span>
+            <div id="profileData"></div>
+        </div>
+    </div>
+
+   
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 function showProfile(userId) {
