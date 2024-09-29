@@ -1,0 +1,60 @@
+ /* CSS FOR THE POP MESSAGE  */
+
+    /* body{
+    background-color: plum;
+} */
+.popup img{
+    height: 25px;
+    width: 25px;    
+    margin-top: 2.8px;
+    position: absolute;
+    left: 5px;
+}
+.popup  h5{
+    text-align: center;
+   font-size: medium;
+   font-weight: normal;
+   margin-left: 100px;
+   margin-top: 10px;
+   color: black;
+   
+ }
+.popup{
+    width: 300px;
+    height: 40px;
+    background: whitesmoke;
+    border-radius: 150px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%,-50%) scale(0.1);
+    text-align: center;
+    padding: 0 30px ,30px;
+    color: #333;
+    visibility: hidden;
+    transition: transform 0.4s, top 0.4s;
+
+}
+.openPopup{
+    visibility:visible;
+    top: 10%;
+    transform: translate(-50%,-50%) scale(1);
+}
+.popup::after{
+    content:'';
+    position: absolute;
+    left: 10px;
+    bottom: 0;
+    width: 93%;
+    height: 5px;
+    background: rgb(0, 128, 0);
+    animation: anim 4s linear forwards;
+    border-radius: 50px;
+}
+@keyframes anim {
+    100%{
+        width: 0;
+    }
+    
+}
+
