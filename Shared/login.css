@@ -1,18 +1,15 @@
 
 .popup img{
     height: 25px;
-    width: 25px;    
-    margin-top: 2.8px;
-    position: absolute;
-    left: 5px;
-    /* padding-top: 8px;
-    padding-left: 10px; */
+    width: 25px;
+    padding-top: 8px;
+    padding-left: 10px;
 }
 .popup{
-    width: 300px;
-    height: 40px;
+    /* width: 300px;
+    height: 40px; */
     background: rgba(0, 128, 0, 0.184);
-    border-radius: 150px;
+    /* border-radius: 150px; */
     position: absolute;
     top: 0;
     left: 50%;
@@ -22,6 +19,9 @@
     color: #333;
     visibility: hidden;
     transition: transform 0.4s, top 0.4s;
+    display: flex;
+    width: 275px;
+    border-radius: 50px;
 
 }
 .popup  h5{
