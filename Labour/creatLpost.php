@@ -69,7 +69,7 @@ echo "<h1 class='d-flex justify-content-center '>If You want Work ,Let your pote
 </div>
 <div class="popup" id="popup">
         <img src="tick.webp" alt="GreenTick">
-       <h5> <pre>Labor Post Created</pre> </h5>
+        <pre>Post Created</pre> 
      </div>
 
 <script src="creatLpost.js"></script>

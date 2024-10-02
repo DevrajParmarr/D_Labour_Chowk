@@ -1,10 +1,9 @@
-//  JAVASCRIPT FOR THE POPUP MESSAGE 
-
 let popup = document.getElementById("popup");
-let timeout;
+
+let Timeout;
 function openPopup(){
     popup.classList.add("openPopup");
-    timeout = setTimeout(closePopup,3000);
+    Timeout = setTimeout(closePopup, 3000);
 }
 function closePopup(){
     popup.classList.remove("openPopup");
