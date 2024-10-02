@@ -1,3 +1,4 @@
+<?php require("login.php");?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,6 +6,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="login.css">
+    <?php 
+    if($main_error != null){
+        ?><style>.error{ display:block;}</style> <?php
+    }?>
+    
 
 </head>
 
@@ -12,13 +18,12 @@
     <div class="d-flex justify-content-center align-items-center vh-100">
         <form action="login.php" method="post" class="w-50  bg-info p-4">
             <h5 class="text-center">Login to D_Labour_Chowk</h5>
-            
+            <p class = "error" >
+                <?php echo "$main_error" ;?>
+            </p>
+           
             <input required class="form-control mt-4" type="text" placeholder="Enter Mobile Number" name="mobile_no">
-            <!-- <p class="contact-error">
-                <?php echo "$contact_error" ; ?>
-            </p> -->
-
-
+           
             <div class="text-center mt-3">
                 <div class="input-group mt-2">
                     <input required class="form-control" type="password" placeholder="Password" id="password"
