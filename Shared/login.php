@@ -4,15 +4,19 @@
 session_start();
 
 $conn=new mysqli ("localhost","root","","d_labour", 3306);
-$sql_result=mysqli_query($conn, "select * from user where mobile_no='$_POST[mobile_no]' and password='$_POST[password]' ");
+$contact_error = null;
+
+$sql_result = mysqli_query($conn, "select * from user where mobile_no='$_POST[mobile_no]' and password='$_POST[password]' ");
 // print_r($sql_result);
 
 
 
 if($sql_result->num_rows==0){
-echo "Invalid Crdentails";
-echo "<h1> Login Failed! Try again</h1><br>";
-die;
+   echo "helo";
+
+// echo "Invalid Crdentails";
+// echo "<h1> Login Failed! Try again</h1><br>";
+// die;
 }
 echo "<h1>Login Success!</h1><br>";
 
