@@ -46,7 +46,7 @@ echo "<h1 class='d-flex justify-content-center '>Creat job Post </h1>";
 </div>
 <div class="popup" id="popup">
         <img src="tick.webp" alt="GreenTick">
-       <h5> <pre>Job Created Successfully</pre> </h5>
+       <pre>Job Created</pre> 
      </div>
 
 <script src="creatjob.js"></script>
