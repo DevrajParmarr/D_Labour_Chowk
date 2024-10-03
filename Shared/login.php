@@ -11,10 +11,7 @@ $sql_result = mysqli_query($conn, "select * from user where mobile_no='$_POST[mo
 
 
 if($sql_result->num_rows==0){
-    header("Location:../Shared/login.html");
-    $main_error = "check all the details you entered";
-
-    
+    header("Location:../Shared/login.html");   
 }else {
     $dbrow=mysqli_fetch_assoc($sql_result);
     print_r($dbrow);
