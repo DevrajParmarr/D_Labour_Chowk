@@ -1,7 +1,7 @@
 .popup img{
-    width: 40px;
-    height: 40px;
-    padding: 8px;
+    width: 35px;
+    height: 35px;
+    padding: 5px;
 }
 .popup{
 
@@ -36,11 +36,11 @@
     top: 30px;
     transform: translate(-50%,-50%) scale(1);
 }
-.error{
+/* .error{
     color: red;
     padding: 10px;
     display: none;
     transform: translate(-20px);
     margin-bottom: 20px;
     font-size: 14px;
-}
+} */

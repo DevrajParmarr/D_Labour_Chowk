@@ -25,6 +25,10 @@ $sql = "INSERT INTO user (user_name, email_id, mobile_no , password, user_type,`
 if (mysqli_query($connec, $sql) && sendmail($_POST['email'] , $vcode)) {
     echo "Successful Insertion";
 } else {
+
+    // DUPLICATE ENTERY ERROR 
+    
+    echo "This is an error";
     echo "Error: " . $sql . "<br>" . mysqli_error($connec);
 }
 
@@ -77,8 +81,10 @@ function sendmail($email,$vcode){
 
 
 mysqli_close($connec);
-
-header("Location: login.html");
+$redirectUrl = 'sign_up.html';
+echo "<script>alert('Please check you email to login as a verified user');
+window.location.href = '$redirectUrl';</script>";
+// header("Location: sign_up.html");
 ?>
 
 
