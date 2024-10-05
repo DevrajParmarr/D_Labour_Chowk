@@ -33,21 +33,23 @@ echo "<h1 class='d-flex justify-content-center '>Creat job Post </h1>";
 <form class="w-50 bg-warning p-3" action="upload.php" method="post" enctype="multipart/form-data">
 
 <input class="form-control mt-3" type="text" placeholder="Job / Work name" name="jobTitle" required>
-<input class="form-control mt-2" type="text" placeholder="Budget / Expected Wage you pay " name="salary" required>
+<input class="form-control mt-2" type="number" placeholder="Budget / Expected Wage you pay " name="salary" required>
 <textarea class="form-control mt-2" name="detail" cols="30" rows="5" placeholder="Job Detail Description :" reqired></textarea> 
 <input class="form-control mt-3" type="text" placeholder="City in which you used to live" name="city" reqired>
 <input class="form-control mt-3" type="text" placeholder="Location:describe proper location" name="location" reqired>
 <input class="form-control mt-2" type="file" accept=" .jpg, .png, .jpeg" name="pdtimg" reqired>
 <div class="mt-3 text-center">
 
-<button class="btn btn-success" onclick="openPopup()"> Creat Post</button>
+<button class="btn btn-success" onclick="openPopup()"> Create Post</button>
+<!-- " -->
 </div>
 </form>
 </div>
-<div class="popup" id="popup">
-        <img src="tick.webp" alt="GreenTick">
+
+<!-- <div class="popup" id="popup">
+       <img src="tick.webp" alt="GreenTick">
        <pre>Job Created</pre> 
-     </div>
+</div> -->
 
 <script src="creatjob.js"></script>
 </body>

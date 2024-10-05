@@ -30,10 +30,16 @@ $query="insert into job_post(jobTitle,salary,detail,city,location,impath,owner) 
 
 
 if (mysqli_query($conn, $query)) {
+    $redirectUrl = 'view.php';
+
     // sleep(2);
-      echo "<h1>Successful Insertion</h1>";
-      header('location:view.php');
+    echo "<script>alert('Job Creation Success ');
+     window.location.href = '$redirectUrl'; // Redirect after alert</script>";
+
+    //   echo "<h1>Successful Insertion</h1>";
+    //   header('location:view.php');
 } else {
+    
     echo "Error: " . $query . "<br>" . mysqli_error($conn);
 }
 
