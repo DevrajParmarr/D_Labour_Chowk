@@ -40,16 +40,12 @@ echo "<h1 class='d-flex justify-content-center '>Creat job Post </h1>";
 <input class="form-control mt-2" type="file" accept=" .jpg, .png, .jpeg" name="pdtimg" reqired>
 <div class="mt-3 text-center">
 
-<button class="btn btn-success" onclick="openPopup()"> Create Post</button>
+<button class="btn btn-success"> Create Post</button>
 <!-- " -->
 </div>
 </form>
 </div>
 
-<!-- <div class="popup" id="popup">
-       <img src="tick.webp" alt="GreenTick">
-       <pre>Job Created</pre> 
-</div> -->
 
 <script src="creatjob.js"></script>
 </body>
