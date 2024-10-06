@@ -36,11 +36,23 @@
     top: 30px;
     transform: translate(-50%,-50%) scale(1);
 }
-/* .error{
+.htmlerror{
+
+    border: 3px solid red;
+    background-color: #ffcccbe4;
+}
+#errormsg{
     color: red;
-    padding: 10px;
-    display: none;
-    transform: translate(-20px);
-    margin-bottom: 20px;
-    font-size: 14px;
-} */
+    font-size: small;
+    /* visibility: hidden; */
+}
+.ermsg{
+    visibility:visible;
+}
+.eropenPopup{
+    border-color: red;
+    background-color: #ffcccb;
+    visibility: visible;
+    top: 30px;
+    transform: translate(-50%,-50%) scale(1);
+}
