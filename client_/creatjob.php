@@ -19,7 +19,7 @@ include "menu.html";
 
 echo "<h1 class='d-flex justify-content-center bg-white p-3 mt-3'>Hello {$_SESSION['user_name']}</h1>";
 
-echo "<h1 class='d-flex justify-content-center '>Creat job Post </h1>";
+echo "<h1 class='d-flex justify-content-center '>Create job Post </h1>";
 
 ?>
 
@@ -38,7 +38,7 @@ echo "<h1 class='d-flex justify-content-center '>Creat job Post </h1>";
 <input class="form-control mt-3" type="text" placeholder="Location:describe proper location" name="location">
 <input class="form-control mt-2" type="file" accept=" .jpg, .png, .jpeg" name="pdtimg">
 <div class="mt-3 text-center">
-<button class="btn btn-success"> Creat Post</button>
+<button class="btn btn-success"> Create Post</button>
 </div>
 </form>
 </div>

@@ -88,10 +88,10 @@ include "menu.html";
             font-size: 1.2em;
         }
         .status.approved {
-            color: #28a745; /* Green for approved status */
+            color: #28a745; 
         }
         .status.pending {
-            color: #ffc107; /* Yellow for pending status */
+            color: #ffc107;
         }
         .status.rejected {
             color: #dc3545; /* Red for rejected status */

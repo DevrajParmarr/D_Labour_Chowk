@@ -285,6 +285,7 @@ include "menu.html";
             <option value="Painter" <?php if ($jobTitle == 'Painter') echo 'selected'; ?>>Painter</option>
             <option value="Gardener" <?php if ($jobTitle == 'Gardener') echo 'selected'; ?>>Gardener</option>
             <option value="Laborer" <?php if ($jobTitle == 'Laborer') echo 'selected'; ?>>Laborer</option>
+            <option value="Welder" <?php if ($jobTitle == 'Laborer') echo 'selected'; ?>>Welder</option>
             <option value="Other" <?php if ($jobTitle == 'Other') echo 'selected'; ?>>Other</option>
         </select>
         <select name="city">
@@ -292,6 +293,10 @@ include "menu.html";
             <option value="Indore" <?php if ($city == 'Indore') echo 'selected'; ?>>Indore</option>
             <option value="Bhopal" <?php if ($city == 'Bhopal') echo 'selected'; ?>>Bhopal</option>
             <option value="Ujjain" <?php if ($city == 'Ujjain') echo 'selected'; ?>>Ujjain</option>
+            <option value="Jabalpur" <?php if ($city == 'Jabalpur') echo 'selected'; ?>>Jabalpur</option>
+            <option value="Kota" <?php if ($city == 'Kota') echo 'selected'; ?>>Kota</option>
+            <option value="Jaipur" <?php if ($city == 'Jaipur') echo 'selected'; ?>>Jaipur</option>
+            <option value="Delhi" <?php if ($city == 'Delhi') echo 'selected'; ?>>Delhi</option>
         </select>
         <button type="submit">Search</button>
     </form>

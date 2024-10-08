@@ -53,6 +53,7 @@ if (!$laborer) {
     <input type="hidden" name="laborer_id" value="<?= $laborer['user_ID'] ?>">
     <input type="hidden" name="client_id" value="<?= $_SESSION['user_id'] ?>">
     <button type="submit" class="contact-btn">Hire Now</button>
+    
 </form>
 
 <div id="message"></div>
