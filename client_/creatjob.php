@@ -17,7 +17,9 @@ include "menu.html";
 
 echo "<h1 class='d-flex justify-content-center bg-white p-3 mt-3'>Hello {$_SESSION['user_name']}</h1>";
 
-echo "<h1 class='d-flex justify-content-center '>Creat job Post </h1>";
+
+echo "<h1 class='d-flex justify-content-center '>Create job Post </h1>";
+
 ?>
 
 
@@ -41,7 +43,7 @@ echo "<h1 class='d-flex justify-content-center '>Creat job Post </h1>";
 <div class="mt-3 text-center">
 
 <button class="btn btn-success"> Create Post</button>
-<!-- " -->
+
 </div>
 </form>
 </div>

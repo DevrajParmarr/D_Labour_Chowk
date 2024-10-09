@@ -1,8 +1,8 @@
 <?php
 session_start();
 include "../Shared/sqlconnection.php";
-
 include "menu.html";
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 $client_id = $_SESSION['user_id'];
 
 $query = "
-SELECT h.hire_id, u.user_name, u.email_id, u.mobile_no, lp.workType, lp.experience, lp.salary, lp.location, h.status
+SELECT h.hire_id, u.user_name, u.email_id, u.mobile_no, lp.workType, lp.experience, lp.salary, lp.location, h.status, h.labour_id
 FROM hires h
 JOIN user u ON h.labour_id = u.user_ID
 JOIN lab_post lp ON h.labour_id = lp.user_ID
@@ -32,7 +32,7 @@ $result = $stmt->get_result();
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f0f4f8;
+            background-color: #f8f9fa;
             font-family: Arial, sans-serif;
         }
         .container {
@@ -43,7 +43,7 @@ $result = $stmt->get_result();
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         h1 {
-            color: #333;
+            color: #343a40;
             margin-bottom: 20px;
         }
         .table {
@@ -53,8 +53,13 @@ $result = $stmt->get_result();
             background-color: #343a40;
             color: #fff;
         }
-        .alert-warning {
-            margin-top: 20px;
+        .modal-header {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
         }
         .footer {
             text-align: center;
@@ -95,10 +100,47 @@ $result = $stmt->get_result();
                         <td><?= htmlspecialchars($row['location']) ?></td>
                         <td><?= htmlspecialchars($row['status']) ?></td>
                         <td>
-                            <form method="POST" action="delete_hire.php" style="display:inline;">
-                                <input type="hidden" name="hire_id" value="<?= $row['hire_id'] ?>">
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                            </form>
+                            <!-- Button trigger modal -->
+                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#rateModal<?= $row['hire_id'] ?>">
+                                Rate
+                            </button>
+
+                            <!-- Rating Modal -->
+                            <div class="modal fade" id="rateModal<?= $row['hire_id'] ?>" tabindex="-1" role="dialog" aria-labelledby="rateModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="rateModalLabel">Rate Labourer: <?= htmlspecialchars($row['user_name']) ?></h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="ratingForm<?= $row['hire_id'] ?>" method="POST" action="rate_labour.php">
+                                                <input type="hidden" name="hire_id" value="<?= $row['hire_id'] ?>">
+                                                <input type="hidden" name="labour_id" value="<?= $row['labour_id'] ?>">
+                                                <input type="hidden" name="client_id" value="<?= $client_id ?>">
+                                                <div class="form-group">
+                                                    <label for="rating">Rating (1-5):</label>
+                                                    <select name="rating" class="form-control" required>
+                                                        <option value="" disabled selected>Select your rating</option>
+                                                        <option value="1">1 Star</option>
+                                                        <option value="2">2 Stars</option>
+                                                        <option value="3">3 Stars</option>
+                                                        <option value="4">4 Stars</option>
+                                                        <option value="5">5 Stars</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="review">Review:</label>
+                                                    <textarea name="review" class="form-control" rows="3" placeholder="Write your review (optional)"></textarea>
+                                                </div>
+                                                <button type="submit" class="btn btn-success">Submit Rating</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 <?php endwhile; ?>
@@ -109,9 +151,9 @@ $result = $stmt->get_result();
     <?php endif; ?>
 </div>
 
-
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </body>
 </html>
