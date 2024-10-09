@@ -26,7 +26,8 @@ if (mysqli_query($connec, $sql) && sendmail($_POST['email'] , $vcode)) {
         $redirectUrl="http://localhost/D_Labour_Chowk/Labour/postL.php";
         echo "<script>alert('successfully sign up as Labour');
         window.location.href = '$redirectUrl';</script>";
-    }else{
+
+    }else if($usertype == "User"){
         $redirectUrl = 'sign_up.html';
         echo "<script>alert('Please check you email to login as a verified user');
         window.location.href = '$redirectUrl';</script>";
@@ -90,23 +91,7 @@ function sendmail($email,$vcode){
     }
 }
 
-if($usertype == "Labour"){
-    $redirectUrl="http://localhost/D_Labour_Chowk/Labour/postL.php";
-    echo "<script>window.location.href = '$redirectUrl';</script>";
-}else if($usertype == "user"){
-    mysqli_close($connec);
-$redirectUrl = 'sign_up.html';
-echo "<script>alert('Please check you email to login as a verified user');
-window.location.href = '$redirectUrl';</script>";
-
-}
-
 // header("Location: sign_up.html");
 ?>
 
-
-
-<!-- <form action="http://localhost/phpmyadmin/index.php?route=/sql&pos=0&db=d_labour&table=user" method="get">
-    <button type="submit">Check your data in SQL</button>
-</form> -->
 

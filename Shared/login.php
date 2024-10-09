@@ -126,26 +126,6 @@ $redirectUrl = 'login.php';
 
 if($sql_result->num_rows==0){
 
-
-    // echo "<script>console.log('password or contact incorrect');</script>";
-
-    // echo "<script type='text/javascript'>
-    // function showerror(){
-    
-    //  console.log('show error function called');
-    //  var password = document.getElementById('password');
-    // password.classList.add('htmlerror');
-     
-    //  }
-    //  showerror();
-     
-    //  </script>
-    //  window.location.href = '$redirectUrl';";  
-
-
-    // echo "<script>alert('Check the Inputs or Signup first if not done');
-    //  window.location.href = '$redirectUrl'; // Redirect after alert</script>";
-
     echo "<script type = 'text/javascript'>wrong_credential();</script>";
     echo "<script type ='text/javascript'>eropenPopup();</script>";
       

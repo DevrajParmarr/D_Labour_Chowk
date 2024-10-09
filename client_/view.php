@@ -51,7 +51,7 @@ include "menu.html";
 }
 .openPopup{
     visibility: visible;
-    top: 30px;
+    top: 90px;
     transform: translate(-50%,-50%) scale(1);
 }
         body {

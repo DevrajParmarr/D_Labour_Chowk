@@ -57,15 +57,21 @@ $query="insert into job_post(jobTitle,salary,detail,city,location,impath,owner) 
 
 
 if (mysqli_query($conn, $query)) {
-    $redirectUrl = 'view.php';
+    $redirectUrl = "http://localhost/D_Labour_Chowk/client_/view.php";
 
 
-    echo "<script type = 'text/javascript'>openPopup();</script>";
-    echo "<script>
-    setTimeout(function() {
+//     echo "<script type = 'text/javascript'>openPopup();</script>";
+//     echo "<script>
+//     setTimeout(function() {
+//         window.location.href = '$redirectUrl';
+//     }, 3000); 
+//   </script>";
+
+     echo "<script>alert('post created to view post click OK');
+
+     setTimeout(function() {
         window.location.href = '$redirectUrl';
-    }, 3000); 
-  </script>";
+     }, 0000)</script>";
 
 
     //   echo "<h1>Successful Insertion</h1>";
