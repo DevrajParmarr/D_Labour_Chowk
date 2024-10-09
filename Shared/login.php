@@ -36,7 +36,7 @@
                 </div>
                 <div class="popup" id="erpopup">
                    <img src="red cross.png" alt="img">
-                   <pre>Check the Details</pre>
+                   <pre>Check Details</pre>
                 </div>
 
             </div>
@@ -183,9 +183,9 @@ if($sql_result->num_rows==0){
     //     echo "<script>alert('click ok to Start your journey');
     //  window.location.href = '$redirectUrl'; // Redirect after alert</script>";
     }
-    if($dbrow["user_type"]=="Labour"){
-        header("location:../Labour/postL.php");
-    }
+    // if($dbrow["user_type"]=="Labour"){
+    //     header("location:../Labour/postL.php");
+    // }
 }
 
 ?>

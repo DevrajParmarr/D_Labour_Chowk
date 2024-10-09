@@ -21,20 +21,27 @@ $vcode = bin2hex(random_bytes(16));
 $sql = "INSERT INTO user (user_name, email_id, mobile_no , password, user_type,`Verification Code`,Verified) VALUES ('$name','$email' , '$mobile' ,  '$password', '$usertype','$vcode','0')";
 
 if (mysqli_query($connec, $sql) && sendmail($_POST['email'] , $vcode)) {
-    echo "Successful Insertion";
-}
-//  else {
+    // echo "Successful Insertion";
+    if($usertype == "Labour"){
+        $redirectUrl="http://localhost/D_Labour_Chowk/Labour/postL.php";
+        echo "<script>alert('successfully sign up as Labour');
+        window.location.href = '$redirectUrl';</script>";
+    }else{
+        $redirectUrl = 'sign_up.html';
+        echo "<script>alert('Please check you email to login as a verified user');
+        window.location.href = '$redirectUrl';</script>";
+        
+    }
+   }
+ else {
 
 //     // DUPLICATE ENTERY ERROR 
-//     $redirectUrl = "http://localhost/D_Labour_Chowk/Shared/sign_up.php";
+    $redirectUrl = "sign_up.html";
 
-//     echo "<script>alert('Dulicate Entry Check your inputs');
-//     window.location.href = '$redirectUrl'; 
-//     </script>";
-    
-//     // echo "This is an error";
-//     // echo "Error: " . $sql . "<br>" . mysqli_error($connec);
-// }
+    echo "<script>alert('Duplicate Entry check the inputs');
+window.location.href = '$redirectUrl';</script>";
+
+ }
 
 function sendmail($email,$vcode){
     require ("PHPMailer/PHPMailer.php");
