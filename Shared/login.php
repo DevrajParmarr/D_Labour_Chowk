@@ -177,6 +177,7 @@ if($sql_result->num_rows==0){
         window.location.href = '$redirectUrl';
     }, 3000); 
   </script>";
+  
         
 
     //     echo "<script>alert('click ok to Start your journey');
