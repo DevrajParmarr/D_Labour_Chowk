@@ -10,11 +10,11 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $search = mysqli_real_escape_string($conn, $_POST['search']);
-    $location = mysqli_real_escape_string($conn, $_POST['location']);
-    $jobTitle = mysqli_real_escape_string($conn, $_POST['jobTitle']);
+    // Ensure keys exist before accessing them
+    $search = isset($_POST['search']) ? mysqli_real_escape_string($conn, $_POST['search']) : '';
+    $location = isset($_POST['location']) ? mysqli_real_escape_string($conn, $_POST['location']) : '';
+    $jobTitle = isset($_POST['jobTitle']) ? mysqli_real_escape_string($conn, $_POST['jobTitle']) : '';
 }
-
 $query = "SELECT * FROM job_post WHERE 1=1";
 if ($jobTitle) {
     $query .= " AND jobTitle = '$jobTitle'";

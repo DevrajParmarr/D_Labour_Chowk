@@ -2,31 +2,106 @@
 session_start();
 include "../Shared/sqlconnection.php";
 
+// Ensure the user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
 
-// Get the laborer ID, status, and post ID from the POST request
-if (isset($_POST['user_ID']) && isset($_POST['status']) && isset($_POST['post_ID'])) {
-    $user_ID = $_POST['user_ID'];
-    $status = $_POST['status'];
-    $post_ID = $_POST['post_ID'];
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Capture the POST parameters
+    $user_id = isset($_POST['user_id']) ? $_POST['user_id'] : '';
+    $status = isset($_POST['status']) ? $_POST['status'] : '';
+    $post_id = isset($_POST['post_id']) ? $_POST['post_id'] : '';
 
-    // Update the status in the database
-    $query = "UPDATE job_applications SET status = ? WHERE labour_id = ? AND job_post_id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("siii", $status, $user_ID, $post_ID);
-    
-    if ($stmt->execute()) {
-        echo "Status updated successfully.";
-    } else {
-        echo "Error updating status: " . $conn->error;
+    // Check for missing parameters
+    if (empty($user_id) || empty($status) || empty($post_id)) {
+        echo json_encode(['success' => false, 'error' => 'Missing parameters']);
+        exit();
     }
 
+    // Update the job application status
+    $update_status_query = "UPDATE job_applications SET status = ? WHERE labour_id = ? AND job_post_id = ?";
+    $stmt = $conn->prepare($update_status_query);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'error' => 'Failed to prepare statement']);
+        exit();
+    }
+
+    $stmt->bind_param("sii", $status, $user_id, $post_id);
+    $execute_result = $stmt->execute();
+
+    if (!$execute_result) {
+        error_log("Error updating status: " . $stmt->error);
+        echo json_encode(['success' => false, 'error' => 'Failed to update status']);
+        exit();
+    }
     $stmt->close();
+
+    // Fetch the client_id related to this job_post_id
+    $client_query = "SELECT client_id FROM lab_post WHERE post_ID = ?";
+    $stmt = $conn->prepare($client_query);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'error' => 'Failed to prepare client query']);
+        exit();
+    }
+
+    $stmt->bind_param("i", $post_id);
+    $stmt->execute();
+    $stmt->bind_result($client_id);
+    $stmt->fetch();
+    $stmt->close();
+
+    if (!$client_id) {
+        echo json_encode(['success' => false, 'error' => 'Client ID not found for this post']);
+        exit();
+    }
+
+    // If the status is 'hired', insert into the 'hires' table
+    if ($status === 'hired') {
+        $insert_hire_query = "INSERT INTO hires (labour_id, client_id ) VALUES (?, ?)";
+        $stmt = $conn->prepare($insert_hire_query);
+
+        if ($stmt === false) {
+            echo json_encode(['success' => false, 'error' => 'Failed to prepare hire statement']);
+            exit();
+        }
+
+        $stmt->bind_param("ii", $user_id, $client_id);
+        $execute_result = $stmt->execute();
+
+        if (!$execute_result) {
+            error_log("Error inserting into hires: " . $stmt->error);
+            echo json_encode(['success' => false, 'error' => 'Failed to insert hire']);
+            exit();
+        }
+        $stmt->close();
+    }
+
+    // Close the job post after status update
+    $update_post_query = "UPDATE lab_post SET status = 'closed' WHERE post_ID = ?";
+    $stmt = $conn->prepare($update_post_query);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'error' => 'Failed to prepare statement']);
+        exit();
+    }
+
+    $stmt->bind_param("i", $post_id);
+    $execute_result = $stmt->execute();
+
+    if (!$execute_result) {
+        error_log("Error closing post: " . $stmt->error);
+        echo json_encode(['success' => false, 'error' => 'Failed to close post']);
+        exit();
+    }
+    $stmt->close();
+
+    echo json_encode(['success' => true]);
 } else {
-    echo "Invalid request.";
+    echo json_encode(['success' => false, 'error' => 'Invalid request']);
 }
 
 $conn->close();

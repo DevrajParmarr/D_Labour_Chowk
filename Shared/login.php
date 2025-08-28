@@ -5,7 +5,6 @@ session_start();
 
 $conn=new mysqli ("localhost","root","","d_labour", 3306);
 $sql_result=mysqli_query($conn, "select * from user where mobile_no='$_POST[mobile_no]' and password='$_POST[password]' ");
-// print_r($sql_result);
 
 if($sql_result->num_rows==0){
 echo "Invalid Crdentails";
