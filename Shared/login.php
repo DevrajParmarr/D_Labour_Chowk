@@ -1,42 +1,74 @@
 <?php
+require_once 'config.php';
 
-
-session_start();
-
-$conn=new mysqli ("localhost","root","","d_labour", 3306);
-$sql_result=mysqli_query($conn, "select * from user where mobile_no='$_POST[mobile_no]' and password='$_POST[password]' ");
-// print_r($sql_result);
-
-if($sql_result->num_rows==0){
-echo "Invalid Crdentails";
-echo "<h1> Login Failed! Try again</h1><br>";
-die;
-}
-echo "<h1>Login Success!</h1><br>";
-
-$dbrow=mysqli_fetch_assoc($sql_result);
-print_r($dbrow);
-
-$_SESSION["login_status"]=true;
-$_SESSION['user_id']=$dbrow['user_ID'];
-$_SESSION['user_name']=$dbrow['user_name'];
-$_SESSION['user_type']=$dbrow['user_type'];
-
-if (isset($_SESSION['user_name'])) {
-    echo "<h1>Hello {$_SESSION['user_name']}</h1>";
-    // echo "<h1>Hello {$_SESSION['user_id'] }</h1>";
+// Handle login request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $mobile_no = sanitizeInput($_POST['mobile_no'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $csrf_token = $_POST['csrf_token'] ?? '';
     
-
+    // Validate CSRF token
+    if (!validateCSRFToken($csrf_token)) {
+        $_SESSION['login_error'] = 'Invalid request. Please try again.';
+        redirect('login_form.php');
+    }
+    
+    // Validate input
+    if (empty($mobile_no) || empty($password)) {
+        $_SESSION['login_error'] = 'Please fill in all required fields.';
+        redirect('login_form.php');
+    }
+    
+    try {
+        $db = Database::getInstance();
+        
+        // Use prepared statement to prevent SQL injection
+        $stmt = $db->prepare("SELECT user_ID, user_name, password, user_type, mobile_no FROM user WHERE mobile_no = ?");
+        $stmt->bind_param('s', $mobile_no);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 1) {
+            $user = $result->fetch_assoc();
+            
+            // Verify password (assuming we'll implement proper hashing later)
+            if (password_verify($password, $user['password']) || $password === $user['password']) {
+                // Login successful
+                $_SESSION['login_status'] = true;
+                $_SESSION['user_id'] = $user['user_ID'];
+                $_SESSION['user_name'] = $user['user_name'];
+                $_SESSION['user_type'] = $user['user_type'];
+                $_SESSION['last_activity'] = time();
+                
+                // Regenerate session ID for security
+                session_regenerate_id(true);
+                
+                // Redirect based on user type
+                if ($user['user_type'] === 'User') {
+                    redirect('../client_/dashboard.php');
+                } elseif ($user['user_type'] === 'Labour') {
+                    redirect('../Labour/dashboard.php');
+                } else {
+                    redirect('../admin/dashboard.php');
+                }
+            } else {
+                $_SESSION['login_error'] = 'Invalid mobile number or password.';
+                redirect('login_form.php');
+            }
+        } else {
+            $_SESSION['login_error'] = 'Invalid mobile number or password.';
+            redirect('login_form.php');
+        }
+        
+        $stmt->close();
+        
+    } catch (Exception $e) {
+        error_log('Login Error: ' . $e->getMessage());
+        $_SESSION['login_error'] = 'Login failed. Please try again later.';
+        redirect('login_form.php');
+    }
 } else {
-    echo "User name is not set.";
+    // Redirect to login form if not POST request
+    redirect('login_form.php');
 }
-
-if($dbrow["user_type"]=="User"){
-    header("location:../client_/availableLabour.php");
-}
-if($dbrow["user_type"]=="Labour"){
-    header("location:../Labour/postL.php");
-}
-
-
 ?>
