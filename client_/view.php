@@ -14,7 +14,46 @@ include "menu.html";
     <title>My Job Posts</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="creatjob.css"> -->
     <style>
+        body{
+    background-color: rgba(100, 148, 237, 0.523);
+}
+.popup img{
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+}
+.popup{
+
+    display: flex;
+    text-align: center;
+    border: 2px solid rgb(65, 202, 37);
+    background-color: rgba(64, 202, 37, 0.22);
+    width: 220px;
+    height: 40px;
+    border-radius: 250px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    padding: 0 30px,30px;
+    transform: translate(-50%, -50% ) scale(0.1);
+    transition: transform 0.4s , top 0.4s;
+    visibility: hidden;
+    
+}
+.popup pre{
+    padding-left: 2rem;   
+    text-align: center;
+    position: absolute;
+    top: 8px;
+    left: 50px;   
+}
+.openPopup{
+    visibility: visible;
+    top: 90px;
+    transform: translate(-50%,-50%) scale(1);
+}
         body {
             background-color: #f4f4f4;
             font-family: 'Arial', sans-serif;
@@ -146,21 +185,37 @@ include "menu.html";
                     <p class='detail'>Detail: <span>" . htmlspecialchars($dbrow['detail']) . "</span></p>
                     <div class='btn-container'>
                         <a href='dltpost.php?post_ID=" . $dbrow['post_ID'] . "'>
-                            <button class='btn btn-danger'>Delete Post</button>
+                            <button class='btn btn-danger' onclick='openPopup()'>Delete Post</button>
                         </a>
                         <a href='interested_labour.php?post_ID=" . $dbrow['post_ID'] . "'>
                             <button class='btn btn-warning'>View Responses</button>
                         </a>
                     </div>
                 </div>
-            </div>";
+            </div>
+";
         }
         ?>
+    <div class='popup' id='popup'>
+       <img src='tick.webp' alt='GreenTick'>
+       <pre>Post Deleted</pre> 
+    </div>
     </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script> 
+    function openPopup(){
+     let Timeout;
+     let popup = document.getElementById("popup");
+     popup.classList.add("openPopup");
+     Timeout = setTimeout(closePopup, 3000);
+    }
+function closePopup(){
+    popup.classList.remove("openPopup");
+}
+</script>
 </body>
 </html>

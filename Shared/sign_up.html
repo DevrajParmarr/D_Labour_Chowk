@@ -9,11 +9,12 @@
 <body>
     <div class="d-flex justify-content-center align-items-center vh-100">
         <form action="sign_up.php" method="post" class="w-50 bg-warning p-4" onsubmit="return validate()">
-            
+
             <h5 class="text-center">Welcome to D_Labour Chowk!</h5>
             <input required class="form-control mt-3" type="text" placeholder="Username" name="username" id="username">
             <input class="form-control mt-3" type="email" placeholder="Email ID" name="email" id="email">
-            <input class="form-control mt-3" type="tel" placeholder="Mobile Number" name="mobile" id="mobile" pattern="[0-9]{10}">
+            <input class="form-control mt-3" type="tel" placeholder="Mobile Number" name="mobile" id="mobile"
+                pattern="[0-9]{10}">
             <input required class="form-control mt-2" type="password" placeholder="Password" name="password" id="pass1">
             <div class="input-group mt-2">
                 <input required class="form-control" type="password" placeholder="Confirm Password" id="pass2">
@@ -24,7 +25,7 @@
             <label class="mt-2">Select UserType</label>
             <select required class="form-control" name="usertype">
                 <option>User </option>
-                
+
                 <option>Labour</option>
             </select>
             <div class="text-center mt-3">
@@ -33,10 +34,15 @@
 
             <div class="text-end mt-3 ">
                 <span class="text-start ">If you already signup </span>
-                <a  class="text-danger " href="login.html">Login Now</a>
+                <a class="text-danger " href="login.html">Login Now</a>
             </div>
         </form>
     </div>
+
+
+
+    <!-- JAVA SCRIPT -->
+
 
     <script>
         const pass1Obj = document.getElementById("pass1");

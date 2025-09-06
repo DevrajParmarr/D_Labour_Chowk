@@ -1,3 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post pop up</title>
+    <link rel="stylesheet" href="creatjob.css">
+    <script> 
+    function openPopup(){
+     let Timeout;
+     let popup = document.getElementById("popup");
+     popup.classList.add("openPopup");
+     Timeout = setTimeout(closePopup, 2000);
+    }
+function closePopup(){
+    popup.classList.remove("openPopup");
+}
+    </script>
+</head>
+<body>
+<div class="popup" id="popup">
+       <img src="tick.webp" alt="GreenTick">
+       <pre>Job Created</pre> 
+</div>
+</body>
+</html>
+
 <?php
 
 session_start();
@@ -30,10 +57,27 @@ $query="insert into job_post(jobTitle,salary,detail,city,location,impath,owner) 
 
 
 if (mysqli_query($conn, $query)) {
-    // sleep(2);
-      echo "<h1>Successful Insertion</h1>";
-      header('location:view.php');
+    $redirectUrl = "http://localhost/D_Labour_Chowk/client_/view.php";
+
+
+//     echo "<script type = 'text/javascript'>openPopup();</script>";
+//     echo "<script>
+//     setTimeout(function() {
+//         window.location.href = '$redirectUrl';
+//     }, 3000); 
+//   </script>";
+
+     echo "<script>alert('post created to view post click OK');
+
+     setTimeout(function() {
+        window.location.href = '$redirectUrl';
+     }, 0000)</script>";
+
+
+    //   echo "<h1>Successful Insertion</h1>";
+    //   header('location:view.php');
 } else {
+    
     echo "Error: " . $query . "<br>" . mysqli_error($conn);
 }
 
