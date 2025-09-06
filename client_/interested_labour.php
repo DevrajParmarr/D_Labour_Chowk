@@ -122,12 +122,12 @@ $result = $stmt->get_result();
 
 <div class="container">
     <h2 class="text-center mb-4">Interested Laborers</h2>
-    <div class="row">
+    <div class="row" id="laborers-list">
         <?php
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 echo "
-                <div class='col-md-4 mb-4'>
+                <div class='col-md-4 mb-4' id='laborer-" . $row['user_ID'] . "'>
                     <div class='card'>
                         <div class='card-header'>
                             <h5 class='card-title'>" . htmlspecialchars($row['user_name']) . "</h5>
@@ -141,8 +141,8 @@ $result = $stmt->get_result();
                                     <i class='fas fa-eye'></i> View Profile
                                 </button>
                                 <div>
-                                    <button class='btn btn-success status-button' onclick='updateStatus(" . $row['user_ID'] . ", \"Hired\")'>Hire</button>
-                                    <button class='btn btn-danger status-button' onclick='updateStatus(" . $row['user_ID'] . ", \"Rejected\")'>Reject</button>
+                                    <button class='btn btn-success status-button' onclick='updateStatus({$row['user_ID']}, \"accepted\")'>Hire</button>
+                                    <button class='btn btn-danger status-button' onclick='updateStatus({$row['user_ID']}, \"rejected\")'>reject</button>
                                 </div>
                             </div>
                         </div>
@@ -193,10 +193,14 @@ function updateStatus(userId, status) {
     $.ajax({
         url: 'update_status.php',
         type: 'POST',
-        data: { user_id: userId, status: status },
+        data: { user_id: userId, status: status, post_id: <?php echo $post_ID; ?> },
         success: function(response) {
             alert('Status updated successfully to: ' + status);
-            location.reload(); // Refresh the page to reflect changes
+
+            // Hide the laborer card after the update
+            $('#laborer-' + userId).fadeOut();
+
+            // Optionally, disable further status updates or take other actions
         },
         error: function() {
             alert('Error updating status');
