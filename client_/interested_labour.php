@@ -71,7 +71,6 @@ $result = $stmt->get_result();
         
         /* Header Section */
         .header-section {
-            background: var(--gradient-primary);
             color: white;
             padding: 3rem 0;
             margin-bottom: 3rem;
@@ -505,6 +504,7 @@ $result = $stmt->get_result();
     </style>
 </head>
 <body>
+<<<<<<< HEAD
     <!-- Header Section -->
     <div class="header-section">
         <div class="header-content">
@@ -580,6 +580,33 @@ $result = $stmt->get_result();
                             <div class='applicant-badge'>
                                 <i class='fas fa-star me-2'></i>
                                 Available
+=======
+
+<div class="container">
+    <h2 class="text-center mb-4">Interested Laborers</h2>
+    <div class="row" id="laborers-list">
+        <?php
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                echo "
+                <div class='col-md-4 mb-4' id='laborer-" . $row['user_ID'] . "'>
+                    <div class='card'>
+                        <div class='card-header'>
+                            <h5 class='card-title'>" . htmlspecialchars($row['user_name']) . "</h5>
+                        </div>
+                        <div class='card-body'>
+                            <p class='card-text'><strong>Work Type:</strong> " . htmlspecialchars($row['workType']) . "</p>
+                            <p class='card-text'><strong>Experience:</strong> " . htmlspecialchars($row['experience']) . " years</p>
+                            <p class='card-text'><strong>City:</strong> " . htmlspecialchars($row['city']) . "</p>
+                            <div class='d-flex justify-content-between align-items-center'>
+                                <button onclick='showProfile({$row['user_ID']})' class='btn btn-outline-secondary'>
+                                    <i class='fas fa-eye'></i> View Profile
+                                </button>
+                                <div>
+                                    <button class='btn btn-success status-button' onclick='updateStatus({$row['user_ID']}, \"accepted\")'>Hire</button>
+                                    <button class='btn btn-danger status-button' onclick='updateStatus({$row['user_ID']}, \"rejected\")'>reject</button>
+                                </div>
+>>>>>>> 39578cd55d61ac8c691bf23cfd350dd7248f990a
                             </div>
                         </div>
                         
@@ -738,6 +765,7 @@ $result = $stmt->get_result();
                 }, 50);
             });
         }
+<<<<<<< HEAD
         
         // Profile functions
         function showProfile(userId) {
@@ -753,6 +781,30 @@ $result = $stmt->get_result();
                     alert('Error loading profile. Please try again.');
                 }
             });
+=======
+    });
+}
+
+function closeProfile() {
+    $('#profileOverlay').hide();
+}
+
+function updateStatus(userId, status) {
+    $.ajax({
+        url: 'update_status.php',
+        type: 'POST',
+        data: { user_id: userId, status: status, post_id: <?php echo $post_ID; ?> },
+        success: function(response) {
+            alert('Status updated successfully to: ' + status);
+
+            // Hide the laborer card after the update
+            $('#laborer-' + userId).fadeOut();
+
+            // Optionally, disable further status updates or take other actions
+        },
+        error: function() {
+            alert('Error updating status');
+>>>>>>> 39578cd55d61ac8c691bf23cfd350dd7248f990a
         }
         
         function closeProfile() {
