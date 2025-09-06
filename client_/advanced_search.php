@@ -1,107 +1,167 @@
 <?php
 require_once '../Shared/config.php';
 
-// Check if user is logged in and is a client
-if (!isLoggedIn()) {
+// Check if user is logged in
+if (!isLoggedIn() || getCurrentUserType() !== 'User') {
     redirect('../Shared/login_form.php');
 }
 
-if (getCurrentUserType() !== 'User') {
-    redirect('../Shared/login_form.php?error=unauthorized');
-}
-
 $user_id = getCurrentUserId();
-$user_name = $_SESSION['user_name'];
 
-// Get search parameters
-$work_type = sanitizeInput($_GET['work_type'] ?? '');
-$city = sanitizeInput($_GET['city'] ?? '');
-$min_salary = (int)($_GET['min_salary'] ?? 0);
-$max_salary = (int)($_GET['max_salary'] ?? 100000);
-$experience = sanitizeInput($_GET['experience'] ?? '');
-$sort_by = sanitizeInput($_GET['sort_by'] ?? 'salary');
-$sort_order = sanitizeInput($_GET['sort_order'] ?? 'DESC');
+// Get filter parameters
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$work_types = isset($_GET['work_types']) ? $_GET['work_types'] : [];
+$city = isset($_GET['city']) ? trim($_GET['city']) : '';
+$min_salary = isset($_GET['min_salary']) ? (int)$_GET['min_salary'] : '';
+$max_salary = isset($_GET['max_salary']) ? (int)$_GET['max_salary'] : '';
+$min_experience = isset($_GET['min_experience']) ? (int)$_GET['min_experience'] : '';
+$max_experience = isset($_GET['max_experience']) ? (int)$_GET['max_experience'] : '';
+$sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'relevance';
+$availability = isset($_GET['availability']) ? $_GET['availability'] : '';
+
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 12;
+$offset = ($page - 1) * $per_page;
 
 try {
     $db = Database::getInstance();
-    
-    // Build search query
-    $conditions = [];
-    $params = [];
-    $param_types = '';
-    
-    if (!empty($work_type)) {
-        $conditions[] = "lp.workType LIKE ?";
-        $params[] = "%$work_type%";
-        $param_types .= 's';
-    }
-    
-    if (!empty($city)) {
-        $conditions[] = "lp.city LIKE ?";
-        $params[] = "%$city%";
-        $param_types .= 's';
-    }
-    
-    if ($min_salary > 0) {
-        $conditions[] = "CAST(lp.salary AS UNSIGNED) >= ?";
-        $params[] = $min_salary;
-        $param_types .= 'i';
-    }
-    
-    if ($max_salary < 100000) {
-        $conditions[] = "CAST(lp.salary AS UNSIGNED) <= ?";
-        $params[] = $max_salary;
-        $param_types .= 'i';
-    }
-    
-    if (!empty($experience)) {
-        $conditions[] = "lp.experience LIKE ?";
-        $params[] = "%$experience%";
-        $param_types .= 's';
-    }
-    
-    // Validate sort parameters
-    $allowed_sort = ['salary', 'experience', 'workType', 'city'];
-    $allowed_order = ['ASC', 'DESC'];
-    
-    if (!in_array($sort_by, $allowed_sort)) $sort_by = 'salary';
-    if (!in_array($sort_order, $allowed_order)) $sort_order = 'DESC';
-    
-    $where_clause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
-    
-    $sql = "
-        SELECT lp.*, u.user_name, u.email_id, u.mobile_no,
+
+    // Build the query
+    $query = "
+        SELECT lp.*, u.user_name, u.mobile_no, u.email_id, u.date_created,
                AVG(r.rating) as avg_rating, COUNT(r.id) as review_count
-        FROM lab_post lp 
-        JOIN user u ON lp.user_ID = u.user_ID 
-        LEFT JOIN hires h ON h.labour_id = u.user_ID
-        LEFT JOIN ratings r ON r.labour_id = u.user_ID
-        $where_clause 
-        GROUP BY lp.l_post_ID, u.user_ID
-        ORDER BY $sort_by $sort_order
-        LIMIT 50
+        FROM lab_post lp
+        JOIN user u ON lp.user_ID = u.user_ID
+        LEFT JOIN ratings r ON r.labour_id = lp.user_ID
+        WHERE u.Verified = 1
     ";
-    
-    $stmt = $db->prepare($sql);
-    
-    if (!empty($params)) {
-        $stmt->bind_param($param_types, ...$params);
+
+    $params = [];
+    $types = '';
+
+    // Add search filter
+    if (!empty($search)) {
+        $query .= " AND (lp.workType LIKE ? OR u.user_name LIKE ? OR lp.city LIKE ? OR lp.location LIKE ?)";
+        $search_param = "%$search%";
+        $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param]);
+        $types .= 'ssss';
     }
-    
+
+    // Add work type filters
+    if (!empty($work_types)) {
+        $placeholders = str_repeat('?,', count($work_types) - 1) . '?';
+        $query .= " AND lp.workType IN ($placeholders)";
+        $params = array_merge($params, $work_types);
+        $types .= str_repeat('s', count($work_types));
+    }
+
+    // Add city filter
+    if (!empty($city)) {
+        $query .= " AND lp.city = ?";
+        $params[] = $city;
+        $types .= 's';
+    }
+
+    // Add salary filters
+    if (!empty($min_salary)) {
+        $query .= " AND lp.salary >= ?";
+        $params[] = $min_salary;
+        $types .= 'i';
+    }
+    if (!empty($max_salary)) {
+        $query .= " AND lp.salary <= ?";
+        $params[] = $max_salary;
+        $types .= 'i';
+    }
+
+    // Add experience filters
+    if (!empty($min_experience)) {
+        $query .= " AND CAST(lp.experience AS UNSIGNED) >= ?";
+        $params[] = $min_experience;
+        $types .= 'i';
+    }
+    if (!empty($max_experience)) {
+        $query .= " AND CAST(lp.experience AS UNSIGNED) <= ?";
+        $params[] = $max_experience;
+        $types .= 'i';
+    }
+
+    // Add availability filter (placeholder for future implementation)
+    if (!empty($availability)) {
+        // This would filter based on availability status
+        // For now, we'll skip this as the database doesn't have availability field
+    }
+
+    $query .= " GROUP BY lp.l_post_ID";
+
+    // Add sorting
+    switch ($sort_by) {
+        case 'salary_high':
+            $query .= " ORDER BY lp.salary DESC";
+            break;
+        case 'salary_low':
+            $query .= " ORDER BY lp.salary ASC";
+            break;
+        case 'experience':
+            $query .= " ORDER BY CAST(lp.experience AS UNSIGNED) DESC";
+            break;
+        case 'rating':
+            $query .= " ORDER BY avg_rating DESC";
+            break;
+        case 'newest':
+            $query .= " ORDER BY lp.l_post_ID DESC";
+            break;
+        case 'name':
+            $query .= " ORDER BY u.user_name ASC";
+            break;
+        default:
+            $query .= " ORDER BY avg_rating DESC, lp.salary DESC";
+    }
+
+    // Get total count for pagination
+    $count_query = str_replace(
+        "SELECT lp.*, u.user_name, u.mobile_no, u.email_id, u.date_created, AVG(r.rating) as avg_rating, COUNT(r.id) as review_count",
+        "SELECT COUNT(DISTINCT lp.l_post_ID) as total",
+        $query
+    );
+
+    $count_stmt = $db->prepare($count_query);
+    if (!empty($params)) {
+        $count_stmt->bind_param($types, ...$params);
+    }
+    $count_stmt->execute();
+    $total_results = $count_stmt->get_result()->fetch_assoc()['total'];
+    $total_pages = ceil($total_results / $per_page);
+
+    // Add pagination to main query
+    $query .= " LIMIT ? OFFSET ?";
+    $params[] = $per_page;
+    $params[] = $offset;
+    $types .= 'ii';
+
+    // Execute main query
+    $stmt = $db->prepare($query);
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
     $stmt->execute();
-    $labourers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    
-    // Get filter options
-    $work_types_query = "SELECT DISTINCT workType FROM lab_post WHERE workType != '' ORDER BY workType";
-    $work_types = $db->query($work_types_query)->fetch_all(MYSQLI_ASSOC);
-    
-    $cities_query = "SELECT DISTINCT city FROM lab_post WHERE city != '' ORDER BY city";
-    $cities = $db->query($cities_query)->fetch_all(MYSQLI_ASSOC);
-    
+    $results = $stmt->get_result();
+
+    // Get available work types for filter
+    $work_types_query = "SELECT DISTINCT workType FROM lab_post ORDER BY workType";
+    $work_types_result = $db->query($work_types_query);
+
+    // Get available cities for filter
+    $cities_query = "SELECT DISTINCT city FROM lab_post ORDER BY city";
+    $cities_result = $db->query($cities_query);
+
 } catch (Exception $e) {
-    error_log('Search Error: ' . $e->getMessage());
-    $labourers = [];
-    $work_types = $cities = [];
+    error_log('Advanced Search Error: ' . $e->getMessage());
+    $results = [];
+    $total_results = 0;
+    $total_pages = 0;
+    $work_types_result = [];
+    $cities_result = [];
 }
 ?>
 
@@ -111,10 +171,30 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Search - D Labour Chowk</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="description" content="Advanced search for skilled workers with multiple filters and sorting options.">
+
+    <!-- Enhanced CSS Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
     <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -122,462 +202,800 @@ try {
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             min-height: 100vh;
         }
 
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        /* Header */
+        .header-section {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
         }
 
-        .navbar-brand {
-            color: white !important;
-            font-weight: 600;
-            font-size: 1.5rem;
+        .header-content {
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
         }
 
-        .nav-link {
-            color: rgba(255, 255, 255, 0.8) !important;
-            transition: color 0.3s;
+        .main-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .nav-link:hover {
-            color: white !important;
+        .main-subtitle {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        .search-container {
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        /* Filters Sidebar */
+        .filters-sidebar {
             background: white;
             border-radius: 20px;
-            padding: 30px;
-            margin: 30px 0;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .filters-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 1.5rem;
+        }
+
+        .filter-group:last-child {
+            border-bottom: none;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 1rem;
+            display: block;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-input, .filter-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-color);
+        }
+
+        .checkbox-item label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .btn-apply-filters {
+            width: 100%;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-apply-filters:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-clear-filters {
+            width: 100%;
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 0.75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .btn-clear-filters:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
-        .search-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .search-header h2 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .search-header p {
-            color: #666;
-        }
-
-        .filter-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .filter-title {
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 2px solid #e1e8ed;
-            padding: 12px 15px;
-            transition: all 0.3s;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn-search {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 10px;
-            padding: 12px 30px;
-            color: white;
-            font-weight: 600;
-            transition: all 0.3s;
-            width: 100%;
-        }
-
-        .btn-search:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-
         .results-header {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .results-count {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .sort-select {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        /* Worker Grid */
+        .worker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .worker-card {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s;
-            border-left: 4px solid #667eea;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #f1f5f9;
+            position: relative;
         }
 
         .worker-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
         }
 
         .worker-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 1px solid #f1f5f9;
         }
 
-        .worker-info h5 {
-            color: #333;
-            margin-bottom: 5px;
+        .worker-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .worker-type {
+            color: var(--primary-color);
             font-weight: 600;
-        }
-
-        .worker-meta {
-            color: #666;
             font-size: 0.9rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 15px;
+            text-transform: capitalize;
         }
 
-        .meta-item {
+        .worker-rating {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
         }
 
-        .worker-salary {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
+        .stars {
+            color: #fbbf24;
+            font-size: 0.9rem;
+        }
+
+        .rating-text {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .worker-details {
+            padding: 1.5rem;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .detail-icon {
+            width: 16px;
+            margin-right: 0.75rem;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .detail-label {
             font-weight: 600;
-            font-size: 1.1rem;
+            color: #374151;
+            margin-right: 0.5rem;
+            min-width: 70px;
         }
 
-        .rating-display {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: #ffc107;
+        .detail-value {
+            color: #6b7280;
+            flex: 1;
+        }
+
+        .salary-value {
+            color: var(--success-color);
+            font-weight: 700;
+            font-size: 1rem;
         }
 
         .worker-actions {
+            padding: 1.5rem;
+            padding-top: 0;
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 0.75rem;
         }
 
-        .btn-hire {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            border: none;
+        .btn-view-profile {
+            flex: 1;
+            background: var(--gradient-primary);
             color: white;
-            padding: 10px 20px;
+            border: none;
+            padding: 0.75rem 1rem;
             border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+            text-align: center;
         }
 
-        .btn-hire:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        .btn-view-profile:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
             color: white;
         }
 
         .btn-contact {
-            background: linear-gradient(135deg, #17a2b8, #138496);
-            border: none;
-            color: white;
-            padding: 10px 20px;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            padding: 0.75rem;
             border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
         .btn-contact:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+            background: rgba(37, 99, 235, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .no-results-icon {
+            font-size: 4rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+
+        .no-results-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .no-results-text {
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        /* Pagination */
+        .pagination-section {
+            display: flex;
+            justify-content: center;
+            margin-top: 3rem;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .pagination a {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #6b7280;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 44px;
+            text-align: center;
+        }
+
+        .pagination a:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .pagination .active {
+            background: var(--primary-color);
             color: white;
         }
 
-        .no-results {
+        /* Loading */
+        .loading {
             text-align: center;
-            padding: 60px;
-            color: #666;
+            padding: 2rem;
         }
 
-        .no-results i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.5;
+        .loading-spinner {
+            font-size: 2rem;
+            color: var(--primary-color);
+            animation: spin 1s linear infinite;
         }
 
-        .salary-range-display {
-            text-align: center;
-            margin-top: 10px;
-            color: #667eea;
-            font-weight: 500;
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .filters-sidebar {
+                position: static;
+            }
         }
 
         @media (max-width: 768px) {
-            .search-container {
-                margin: 15px;
-                padding: 20px;
+            .worker-grid {
+                grid-template-columns: 1fr;
             }
-            
-            .worker-header {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .worker-actions {
-                flex-direction: column;
-            }
-            
+
             .results-header {
                 flex-direction: column;
-                gap: 15px;
-                text-align: center;
+                align-items: stretch;
             }
+
+            .sort-controls {
+                justify-content: center;
+            }
+
+            .main-title {
+                font-size: 2rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="bi bi-briefcase"></i> D Labour Chowk
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="dashboard.php">Dashboard</a>
-                <a class="nav-link" href="availableLabour.php">Browse Workers</a>
-                <a class="nav-link" href="../Shared/logout.php">Logout</a>
-            </div>
+    <!-- Header -->
+    <div class="header-section">
+        <div class="header-content">
+            <h1 class="main-title">
+                <i class="fas fa-search-plus me-3"></i>Advanced Search
+            </h1>
+            <p class="main-subtitle">
+                Find the perfect skilled worker with our advanced filtering and search options.
+                Refine your search to get exactly what you need.
+            </p>
         </div>
-    </nav>
+    </div>
 
-    <div class="container">
-        <!-- Search Form -->
-        <div class="search-container">
-            <div class="search-header">
-                <h2><i class="bi bi-search"></i> Advanced Worker Search</h2>
-                <p>Find the perfect worker for your project with advanced filters</p>
-            </div>
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Filters Sidebar -->
+        <div class="filters-sidebar">
+            <h3 class="filters-title">
+                <i class="fas fa-filter"></i>
+                Filters
+            </h3>
 
-            <form method="GET" action="">
-                <div class="filter-section">
-                    <h5 class="filter-title">
-                        <i class="bi bi-funnel"></i> Search Filters
-                    </h5>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Work Type</label>
-                            <select class="form-select" name="work_type">
-                                <option value="">All Work Types</option>
-                                <?php foreach ($work_types as $type): ?>
-                                    <option value="<?php echo htmlspecialchars($type['workType']); ?>" 
-                                            <?php echo $work_type === $type['workType'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars(ucfirst($type['workType'])); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">City</label>
-                            <select class="form-select" name="city">
-                                <option value="">All Cities</option>
-                                <?php foreach ($cities as $c): ?>
-                                    <option value="<?php echo htmlspecialchars($c['city']); ?>" 
-                                            <?php echo $city === $c['city'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars(ucfirst($c['city'])); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Minimum Salary (₹/day)</label>
-                            <input type="range" class="form-range" name="min_salary" min="0" max="10000" 
-                                   value="<?php echo $min_salary; ?>" id="minSalaryRange">
-                            <div class="salary-range-display" id="minSalaryDisplay">₹<?php echo number_format($min_salary); ?></div>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Maximum Salary (₹/day)</label>
-                            <input type="range" class="form-range" name="max_salary" min="1000" max="20000" 
-                                   value="<?php echo $max_salary; ?>" id="maxSalaryRange">
-                            <div class="salary-range-display" id="maxSalaryDisplay">₹<?php echo number_format($max_salary); ?></div>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Experience</label>
-                            <input type="text" class="form-control" name="experience" 
-                                   placeholder="e.g., 5 years, Experienced" 
-                                   value="<?php echo htmlspecialchars($experience); ?>">
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Sort By</label>
-                            <div class="row">
-                                <div class="col-8">
-                                    <select class="form-select" name="sort_by">
-                                        <option value="salary" <?php echo $sort_by === 'salary' ? 'selected' : ''; ?>>Salary</option>
-                                        <option value="experience" <?php echo $sort_by === 'experience' ? 'selected' : ''; ?>>Experience</option>
-                                        <option value="workType" <?php echo $sort_by === 'workType' ? 'selected' : ''; ?>>Work Type</option>
-                                        <option value="city" <?php echo $sort_by === 'city' ? 'selected' : ''; ?>>City</option>
-                                    </select>
-                                </div>
-                                <div class="col-4">
-                                    <select class="form-select" name="sort_order">
-                                        <option value="DESC" <?php echo $sort_order === 'DESC' ? 'selected' : ''; ?>>High to Low</option>
-                                        <option value="ASC" <?php echo $sort_order === 'ASC' ? 'selected' : ''; ?>>Low to High</option>
-                                    </select>
-                                </div>
+            <form id="filterForm" method="GET" action="">
+                <!-- Search -->
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-search me-2"></i>Search
+                    </label>
+                    <input type="text" class="filter-input" name="search" placeholder="Name, work type, location..."
+                           value="<?php echo htmlspecialchars($search); ?>">
+                </div>
+
+                <!-- Work Types -->
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-tools me-2"></i>Work Types
+                    </label>
+                    <div class="checkbox-group">
+                        <?php while ($work_type = $work_types_result->fetch_assoc()): ?>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="work_types[]" value="<?php echo htmlspecialchars($work_type['workType']); ?>"
+                                       id="work_<?php echo htmlspecialchars($work_type['workType']); ?>"
+                                       <?php if (in_array($work_type['workType'], $work_types)) echo 'checked'; ?>>
+                                <label for="work_<?php echo htmlspecialchars($work_type['workType']); ?>">
+                                    <?php echo htmlspecialchars($work_type['workType']); ?>
+                                </label>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-search">
-                                <i class="bi bi-search"></i> Search Workers
-                            </button>
-                        </div>
+                        <?php endwhile; ?>
                     </div>
                 </div>
+
+                <!-- City -->
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-map-marker-alt me-2"></i>City
+                    </label>
+                    <select class="filter-select" name="city">
+                        <option value="">All Cities</option>
+                        <?php while ($city_option = $cities_result->fetch_assoc()): ?>
+                            <option value="<?php echo htmlspecialchars($city_option['city']); ?>"
+                                    <?php if ($city === $city_option['city']) echo 'selected'; ?>>
+                                <?php echo htmlspecialchars($city_option['city']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+
+                <!-- Salary Range -->
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-rupee-sign me-2"></i>Salary Range
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.5rem; align-items: center;">
+                        <input type="number" class="filter-input" name="min_salary" placeholder="Min"
+                               value="<?php echo $min_salary; ?>" min="0">
+                        <span style="color: #6b7280;">to</span>
+                        <input type="number" class="filter-input" name="max_salary" placeholder="Max"
+                               value="<?php echo $max_salary; ?>" min="0">
+                    </div>
+                </div>
+
+                <!-- Experience -->
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-clock me-2"></i>Experience (Years)
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.5rem; align-items: center;">
+                        <input type="number" class="filter-input" name="min_experience" placeholder="Min"
+                               value="<?php echo $min_experience; ?>" min="0">
+                        <span style="color: #6b7280;">to</span>
+                        <input type="number" class="filter-input" name="max_experience" placeholder="Max"
+                               value="<?php echo $max_experience; ?>" min="0">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-apply-filters">
+                    <i class="fas fa-search me-2"></i>Apply Filters
+                </button>
+                <button type="button" class="btn-clear-filters" onclick="clearFilters()">
+                    <i class="fas fa-times me-2"></i>Clear All
+                </button>
             </form>
         </div>
 
-        <!-- Results -->
-        <div class="results-header">
-            <h4><i class="bi bi-people"></i> Search Results (<?php echo count($labourers); ?> found)</h4>
-            <?php if (!empty($labourers)): ?>
-                <div class="text-muted">
-                    Sorted by <?php echo ucfirst($sort_by); ?> (<?php echo $sort_order === 'DESC' ? 'High to Low' : 'Low to High'; ?>)
+        <!-- Results Section -->
+        <div class="results-section">
+            <div class="results-header">
+                <div class="results-count">
+                    <i class="fas fa-users me-2"></i>
+                    <?php echo $total_results; ?> worker<?php echo $total_results !== 1 ? 's' : ''; ?> found
+                </div>
+
+                <div class="sort-controls">
+                    <label for="sort_by" style="font-weight: 600; color: #374151;">Sort by:</label>
+                    <select class="sort-select" id="sort_by" onchange="changeSort(this.value)">
+                        <option value="relevance" <?php if ($sort_by === 'relevance') echo 'selected'; ?>>Relevance</option>
+                        <option value="rating" <?php if ($sort_by === 'rating') echo 'selected'; ?>>Rating</option>
+                        <option value="salary_high" <?php if ($sort_by === 'salary_high') echo 'selected'; ?>>Salary: High to Low</option>
+                        <option value="salary_low" <?php if ($sort_by === 'salary_low') echo 'selected'; ?>>Salary: Low to High</option>
+                        <option value="experience" <?php if ($sort_by === 'experience') echo 'selected'; ?>>Experience</option>
+                        <option value="newest" <?php if ($sort_by === 'newest') echo 'selected'; ?>>Newest</option>
+                        <option value="name" <?php if ($sort_by === 'name') echo 'selected'; ?>>Name</option>
+                    </select>
+                </div>
+            </div>
+
+            <?php if ($results->num_rows > 0): ?>
+                <div class="worker-grid">
+                    <?php while ($worker = $results->fetch_assoc()): ?>
+                        <div class="worker-card fade-in-up">
+                            <div class="worker-header">
+                                <h3 class="worker-name"><?php echo htmlspecialchars($worker['user_name']); ?></h3>
+                                <div class="worker-type"><?php echo htmlspecialchars($worker['workType']); ?></div>
+                                <div class="worker-rating">
+                                    <div class="stars">
+                                        <?php
+                                        $rating = round($worker['avg_rating'] ?? 0, 1);
+                                        for ($i = 1; $i <= 5; $i++) {
+                                            if ($i <= $rating) {
+                                                echo '<i class="fas fa-star"></i>';
+                                            } elseif ($i - 0.5 <= $rating) {
+                                                echo '<i class="fas fa-star-half-alt"></i>';
+                                            } else {
+                                                echo '<i class="far fa-star"></i>';
+                                            }
+                                        }
+                                        ?>
+                                    </div>
+                                    <span class="rating-text">
+                                        <?php echo $rating > 0 ? $rating : 'No rating'; ?>
+                                        <?php if ($worker['review_count'] > 0): ?>
+                                            (<?php echo $worker['review_count']; ?> reviews)
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="worker-details">
+                                <div class="detail-row">
+                                    <i class="fas fa-map-marker-alt detail-icon"></i>
+                                    <span class="detail-label">Location:</span>
+                                    <span class="detail-value"><?php echo htmlspecialchars($worker['city']); ?></span>
+                                </div>
+
+                                <div class="detail-row">
+                                    <i class="fas fa-rupee-sign detail-icon"></i>
+                                    <span class="detail-label">Salary:</span>
+                                    <span class="detail-value salary-value">₹<?php echo number_format($worker['salary']); ?>/month</span>
+                                </div>
+
+                                <div class="detail-row">
+                                    <i class="fas fa-clock detail-icon"></i>
+                                    <span class="detail-label">Experience:</span>
+                                    <span class="detail-value"><?php echo htmlspecialchars($worker['experience']); ?> years</span>
+                                </div>
+
+                                <div class="detail-row">
+                                    <i class="fas fa-calendar detail-icon"></i>
+                                    <span class="detail-label">Joined:</span>
+                                    <span class="detail-value"><?php echo date('M Y', strtotime($worker['date_created'])); ?></span>
+                                </div>
+                            </div>
+
+                            <div class="worker-actions">
+                                <a href="profile.php?user_id=<?php echo $worker['user_ID']; ?>" class="btn-view-profile">
+                                    <i class="fas fa-user me-2"></i>View Profile
+                                </a>
+                                <button class="btn-contact" onclick="contactWorker(<?php echo $worker['user_ID']; ?>)">
+                                    <i class="fas fa-phone"></i>
+                                </button>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+            <?php else: ?>
+                <div class="no-results">
+                    <div class="no-results-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3 class="no-results-title">No Workers Found</h3>
+                    <p class="no-results-text">
+                        Try adjusting your search criteria or clearing some filters to see more results.
+                    </p>
+                </div>
+            <?php endif; ?>
+
+            <!-- Pagination -->
+            <?php if ($total_pages > 1): ?>
+                <div class="pagination-section">
+                    <div class="pagination">
+                        <?php if ($page > 1): ?>
+                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page - 1])); ?>">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        <?php endif; ?>
+
+                        <?php
+                        $start = max(1, $page - 2);
+                        $end = min($total_pages, $page + 2);
+
+                        if ($start > 1): ?>
+                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => 1])); ?>">1</a>
+                            <?php if ($start > 2): ?>
+                                <span>...</span>
+                            <?php endif; ?>
+                        <?php endif; ?>
+
+                        <?php for ($i = $start; $i <= $end; $i++): ?>
+                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $i])); ?>"
+                               class="<?php if ($i == $page) echo 'active'; ?>">
+                                <?php echo $i; ?>
+                            </a>
+                        <?php endfor; ?>
+
+                        <?php if ($end < $total_pages): ?>
+                            <?php if ($end < $total_pages - 1): ?>
+                                <span>...</span>
+                            <?php endif; ?>
+                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $total_pages])); ?>">
+                                <?php echo $total_pages; ?>
+                            </a>
+                        <?php endif; ?>
+
+                        <?php if ($page < $total_pages): ?>
+                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page + 1])); ?>">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        <?php endif; ?>
+                    </div>
                 </div>
             <?php endif; ?>
         </div>
-
-        <?php if (empty($labourers)): ?>
-            <div class="no-results">
-                <i class="bi bi-search"></i>
-                <h4>No Workers Found</h4>
-                <p>Try adjusting your search filters to find more workers.</p>
-                <a href="?" class="btn btn-search" style="width: auto;">
-                    <i class="bi bi-arrow-clockwise"></i> Clear Filters
-                </a>
-            </div>
-        <?php else: ?>
-            <?php foreach ($labourers as $labour): ?>
-                <div class="worker-card">
-                    <div class="worker-header">
-                        <div class="worker-info">
-                            <h5><?php echo htmlspecialchars($labour['user_name']); ?></h5>
-                            <div class="worker-meta">
-                                <span class="meta-item">
-                                    <i class="bi bi-tools"></i>
-                                    <?php echo htmlspecialchars(ucfirst($labour['workType'])); ?>
-                                </span>
-                                <span class="meta-item">
-                                    <i class="bi bi-geo-alt"></i>
-                                    <?php echo htmlspecialchars($labour['city']); ?>
-                                </span>
-                                <span class="meta-item">
-                                    <i class="bi bi-clock"></i>
-                                    <?php echo htmlspecialchars($labour['experience']); ?>
-                                </span>
-                                <span class="meta-item">
-                                    <i class="bi bi-phone"></i>
-                                    <?php echo htmlspecialchars($labour['mobile_no']); ?>
-                                </span>
-                                <?php if ($labour['avg_rating']): ?>
-                                    <span class="meta-item rating-display">
-                                        <i class="bi bi-star-fill"></i>
-                                        <?php echo number_format($labour['avg_rating'], 1); ?>
-                                        <span class="text-muted">(<?php echo $labour['review_count']; ?> reviews)</span>
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        <div class="worker-salary">
-                            ₹<?php echo number_format($labour['salary']); ?>/day
-                        </div>
-                    </div>
-                    
-                    <div class="worker-description">
-                        <p class="text-muted mb-3">
-                            <i class="bi bi-geo-alt-fill"></i>
-                            <?php echo htmlspecialchars($labour['location']); ?>
-                        </p>
-                    </div>
-                    
-                    <div class="worker-actions">
-                        <a href="hire_labor.php?labour_id=<?php echo $labour['user_ID']; ?>" class="btn-hire">
-                            <i class="bi bi-person-plus"></i> Hire Now
-                        </a>
-                        <a href="get_profile.php?labour_id=<?php echo $labour['user_ID']; ?>" class="btn-contact">
-                            <i class="bi bi-eye"></i> View Profile
-                        </a>
-                        <a href="tel:<?php echo $labour['mobile_no']; ?>" class="btn-contact">
-                            <i class="bi bi-telephone"></i> Call
-                        </a>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // Update salary range displays
-        document.getElementById('minSalaryRange').addEventListener('input', function() {
-            document.getElementById('minSalaryDisplay').textContent = '₹' + parseInt(this.value).toLocaleString();
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
         });
-        
-        document.getElementById('maxSalaryRange').addEventListener('input', function() {
-            document.getElementById('maxSalaryDisplay').textContent = '₹' + parseInt(this.value).toLocaleString();
+
+        // Change sort function
+        function changeSort(sortValue) {
+            const url = new URL(window.location);
+            url.searchParams.set('sort_by', sortValue);
+            url.searchParams.set('page', '1'); // Reset to first page
+            window.location.href = url.toString();
+        }
+
+        // Clear filters function
+        function clearFilters() {
+            const url = new URL(window.location);
+            url.search = '?page=1'; // Keep only page parameter
+            window.location.href = url.toString();
+        }
+
+        // Contact worker function
+        function contactWorker(userId) {
+            // This would typically open a contact modal or redirect to messaging
+            alert('Contact feature will be implemented. Worker ID: ' + userId);
+        }
+
+        // Add loading states to buttons
+        document.querySelectorAll('.btn-view-profile').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+                this.disabled = true;
+
+                // Reset after navigation delay
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }, 3000);
+            });
         });
-        
-        // Auto-submit form on range change (optional)
-        const ranges = document.querySelectorAll('input[type="range"]');
-        ranges.forEach(range => {
-            range.addEventListener('change', function() {
-                // Uncomment to auto-submit on range change
-                // document.querySelector('form').submit();
+
+        // Add hover effects to cards
+        document.querySelectorAll('.worker-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Auto-submit form on checkbox change (optional)
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Uncomment below line to auto-submit on checkbox change
+                // document.getElementById('filterForm').submit();
+            });
+        });
+
+        // Add staggered animation to cards
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.worker-card').forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
             });
         });
     </script>

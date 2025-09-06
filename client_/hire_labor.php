@@ -2,13 +2,24 @@
 session_start();
 include "../Shared/sqlconnection.php";
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized access']);
     exit();
 }
 
-$client_id = $_POST['client_id'];
-$laborer_id = $_POST['laborer_id'];
+$client_id = filter_var($_POST['client_id'], FILTER_VALIDATE_INT);
+$laborer_id = filter_var($_POST['laborer_id'], FILTER_VALIDATE_INT);
+
+if (!$client_id || !$laborer_id) {
+    echo json_encode(['status' => 'error', 'message' => 'Invalid parameters']);
+    exit();
+}
+
+// Verify the client_id matches the logged-in user
+if ($client_id !== $_SESSION['user_id']) {
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized access']);
+    exit();
+}
 
 $checkQuery = "SELECT * FROM hires WHERE client_id = ? AND labour_id = ?";
 $stmt = $conn->prepare($checkQuery);

@@ -1,15 +1,20 @@
 <?php
-session_start();
+require_once '../Shared/config.php';
 
-if (!isset($_SESSION["login_status"]) || $_SESSION["login_status"] == false) {
-    header('Location: ../Shared/login_form.php');
-    exit;
+// Check if user is logged in and is a client
+if (!isLoggedIn()) {
+    redirect('../Shared/login_form.php');
 }
 
-include "../Shared/sqlconnection.php";
-include "menu.html";
+if (getCurrentUserType() !== 'User') {
+    redirect('../Shared/login_form.php?error=unauthorized');
+}
 
-$client_id = $_SESSION['user_id'];
+$db = Database::getInstance();
+$conn = $db->getConnection();
+$client_id = getCurrentUserId();
+
+include "menu.html";
 
 $query = "
 SELECT h.hire_id, u.user_name, u.email_id, u.mobile_no, lp.workType, lp.experience, lp.salary, lp.location, h.status, h.labour_id

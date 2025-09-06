@@ -1,21 +1,16 @@
-session_start();
+<?php
+require_once '../Shared/config.php';
 
-<<<<<<< HEAD
-=======
-sleep(3.1);
->>>>>>> 39578cd55d61ac8c691bf23cfd350dd7248f990a
-if(!isset($_SESSION["login_status"])){
-    header('Location: ../Shared/login_form.php');
-    exit;
+// Check if user is logged in and is a client
+if (!isLoggedIn()) {
+    redirect('../Shared/login_form.php');
 }
 
-if($_SESSION["login_status"]==false){
-    header('Location: ../Shared/login_form.php');
-    exit;
+if (getCurrentUserType() !== 'User') {
+    redirect('../Shared/login_form.php?error=unauthorized');
 }
 
 include "menu.html";
-<<<<<<< HEAD
 ?>
 
 <!DOCTYPE html>
@@ -25,13 +20,13 @@ include "menu.html";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Job Post - D Labour Chowk</title>
     <meta name="description" content="Post a new job and find skilled workers for your project. Easy job posting with detailed requirements.">
-    
+
     <!-- Enhanced CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    
+
     <style>
         :root {
             --primary-color: #2563eb;
@@ -43,13 +38,13 @@ include "menu.html";
             --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
@@ -57,7 +52,7 @@ include "menu.html";
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             min-height: 100vh;
         }
-        
+
         /* Header Section */
         .header-section {
             background: var(--gradient-primary);
@@ -67,7 +62,7 @@ include "menu.html";
             position: relative;
             overflow: hidden;
         }
-        
+
         .header-section::before {
             content: '';
             position: absolute;
@@ -78,7 +73,7 @@ include "menu.html";
             background: rgba(0, 0, 0, 0.1);
             z-index: 1;
         }
-        
+
         .header-content {
             text-align: center;
             max-width: 1200px;
@@ -87,13 +82,13 @@ include "menu.html";
             position: relative;
             z-index: 2;
         }
-        
+
         .welcome-text {
             font-size: 1.2rem;
             opacity: 0.9;
             margin-bottom: 1rem;
         }
-        
+
         .main-title {
             font-family: 'Poppins', sans-serif;
             font-size: clamp(2rem, 4vw, 3.5rem);
@@ -101,21 +96,21 @@ include "menu.html";
             margin-bottom: 1rem;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
-        
+
         .main-subtitle {
             font-size: clamp(1rem, 2vw, 1.3rem);
             opacity: 0.9;
             max-width: 600px;
             margin: 0 auto;
         }
-        
+
         /* Main Container */
         .main-container {
             max-width: 800px;
             margin: 0 auto;
             padding: 0 1rem;
         }
-        
+
         /* Job Form Card */
         .job-form-card {
             background: white;
@@ -126,7 +121,7 @@ include "menu.html";
             position: relative;
             overflow: hidden;
         }
-        
+
         .job-form-card::before {
             content: '';
             position: absolute;
@@ -136,7 +131,7 @@ include "menu.html";
             height: 4px;
             background: var(--gradient-accent);
         }
-        
+
         .form-title {
             font-family: 'Poppins', sans-serif;
             font-size: 1.8rem;
@@ -145,19 +140,19 @@ include "menu.html";
             margin-bottom: 0.5rem;
             text-align: center;
         }
-        
+
         .form-subtitle {
             color: #6b7280;
             text-align: center;
             margin-bottom: 2.5rem;
             font-size: 1rem;
         }
-        
+
         /* Form Groups */
         .form-group {
             margin-bottom: 2rem;
         }
-        
+
         .form-label {
             display: block;
             margin-bottom: 0.75rem;
@@ -167,7 +162,7 @@ include "menu.html";
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .form-control {
             width: 100%;
             padding: 1rem 1.25rem;
@@ -177,7 +172,7 @@ include "menu.html";
             transition: all 0.3s ease;
             background: #fafbfc;
         }
-        
+
         .form-control:focus {
             outline: none;
             border-color: var(--primary-color);
@@ -185,17 +180,17 @@ include "menu.html";
             background: white;
             transform: translateY(-1px);
         }
-        
+
         .form-control::placeholder {
             color: #9ca3af;
         }
-        
+
         /* Textarea */
         .form-textarea {
             min-height: 120px;
             resize: vertical;
         }
-        
+
         /* File Upload */
         .file-upload-container {
             position: relative;
@@ -209,18 +204,18 @@ include "menu.html";
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        
+
         .file-upload-container:hover {
             border-color: var(--primary-color);
             background: rgba(37, 99, 235, 0.05);
         }
-        
+
         .file-upload-container.dragover {
             border-color: var(--primary-color);
             background: rgba(37, 99, 235, 0.1);
             transform: scale(1.02);
         }
-        
+
         .file-upload-input {
             position: absolute;
             width: 100%;
@@ -228,42 +223,42 @@ include "menu.html";
             opacity: 0;
             cursor: pointer;
         }
-        
+
         .file-upload-content {
             text-align: center;
             pointer-events: none;
         }
-        
+
         .file-upload-icon {
             font-size: 3rem;
             color: #9ca3af;
             margin-bottom: 1rem;
         }
-        
+
         .file-upload-text {
             color: #6b7280;
             margin-bottom: 0.5rem;
         }
-        
+
         .file-upload-hint {
             color: #9ca3af;
             font-size: 0.875rem;
         }
-        
+
         .file-selected {
             display: none;
             background: rgba(16, 185, 129, 0.1);
             border-color: var(--success-color);
             color: var(--success-color);
         }
-        
+
         /* Row Layout */
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1.5rem;
         }
-        
+
         /* Submit Section */
         .submit-section {
             text-align: center;
@@ -271,7 +266,7 @@ include "menu.html";
             padding-top: 2rem;
             border-top: 1px solid #e5e7eb;
         }
-        
+
         .btn-submit {
             background: var(--gradient-primary);
             color: white;
@@ -286,22 +281,22 @@ include "menu.html";
             letter-spacing: 0.5px;
             min-width: 200px;
         }
-        
+
         .btn-submit:hover {
             transform: translateY(-3px);
             box-shadow: 0 15px 35px rgba(37, 99, 235, 0.4);
         }
-        
+
         .btn-submit:active {
             transform: translateY(0);
         }
-        
+
         .btn-submit:disabled {
             opacity: 0.7;
             cursor: not-allowed;
             transform: none;
         }
-        
+
         /* Progress Steps */
         .progress-steps {
             display: flex;
@@ -309,13 +304,13 @@ include "menu.html";
             margin-bottom: 2rem;
             padding: 0 1rem;
         }
-        
+
         .step {
             display: flex;
             align-items: center;
             margin: 0 1rem;
         }
-        
+
         .step-number {
             width: 40px;
             height: 40px;
@@ -329,53 +324,53 @@ include "menu.html";
             margin-right: 0.5rem;
             transition: all 0.3s ease;
         }
-        
+
         .step.active .step-number {
             background: var(--gradient-primary);
             color: white;
         }
-        
+
         .step.completed .step-number {
             background: var(--success-color);
             color: white;
         }
-        
+
         .step-text {
             font-size: 0.875rem;
             color: #6b7280;
             font-weight: 500;
         }
-        
+
         .step.active .step-text {
             color: #1f2937;
         }
-        
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .job-form-card {
                 padding: 2rem 1.5rem;
                 margin: 1rem;
             }
-            
+
             .form-row {
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
-            
+
             .progress-steps {
                 flex-direction: column;
                 align-items: center;
             }
-            
+
             .step {
                 margin: 0.5rem 0;
             }
-            
+
             .btn-submit {
                 width: 100%;
             }
         }
-        
+
         /* Animations */
         @keyframes slideInUp {
             from {
@@ -387,26 +382,26 @@ include "menu.html";
                 transform: translateY(0);
             }
         }
-        
+
         .slide-in-up {
             animation: slideInUp 0.6s ease forwards;
         }
-        
+
         /* Loading State */
         .loading {
             display: none;
         }
-        
+
         .loading.show {
             display: inline-block;
             animation: spin 1s linear infinite;
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         /* Success Message */
         .success-message {
             display: none;
@@ -418,7 +413,7 @@ include "menu.html";
             margin-bottom: 1.5rem;
             text-align: center;
         }
-        
+
         /* Error Message */
         .error-message {
             display: none;
@@ -443,12 +438,12 @@ include "menu.html";
                 <i class="fas fa-briefcase me-3"></i>Create Job Post
             </h1>
             <p class="main-subtitle" data-aos="fade-up" data-aos-delay="400">
-                Post your job requirements and connect with skilled workers in your area. 
+                Post your job requirements and connect with skilled workers in your area.
                 Get quality work done efficiently and reliably.
             </p>
         </div>
     </div>
-    
+
     <!-- Main Container -->
     <div class="main-container">
         <!-- Job Form Card -->
@@ -468,23 +463,23 @@ include "menu.html";
                     <div class="step-text">Publish</div>
                 </div>
             </div>
-            
+
             <h2 class="form-title">
                 <i class="fas fa-edit me-2"></i>Job Details
             </h2>
             <p class="form-subtitle">
                 Provide detailed information about your job to attract the right workers
             </p>
-            
+
             <!-- Success/Error Messages -->
             <div id="successMessage" class="success-message">
                 <i class="fas fa-check-circle me-2"></i>Job post created successfully!
             </div>
-            
+
             <div id="errorMessage" class="error-message">
                 <i class="fas fa-exclamation-triangle me-2"></i>Please fix the errors below and try again.
             </div>
-            
+
             <!-- Job Form -->
             <form id="jobForm" action="upload.php" method="post" enctype="multipart/form-data">
                 <!-- Job Title and Salary Row -->
@@ -493,29 +488,29 @@ include "menu.html";
                         <label class="form-label">
                             <i class="fas fa-briefcase me-2"></i>Job Title *
                         </label>
-                        <input class="form-control" type="text" name="jobTitle" id="jobTitle" 
+                        <input class="form-control" type="text" name="jobTitle" id="jobTitle"
                                placeholder="e.g., Plumber for Home Renovation" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-rupee-sign me-2"></i>Budget/Salary *
                         </label>
-                        <input class="form-control" type="number" name="salary" id="salary" 
+                        <input class="form-control" type="number" name="salary" id="salary"
                                placeholder="Enter amount in ₹" min="100" required>
                     </div>
                 </div>
-                
+
                 <!-- Job Description -->
                 <div class="form-group">
                     <label class="form-label">
                         <i class="fas fa-file-alt me-2"></i>Job Description *
                     </label>
-                    <textarea class="form-control form-textarea" name="detail" id="detail" 
-                              placeholder="Describe the work requirements, skills needed, timeline, and any specific instructions..." 
+                    <textarea class="form-control form-textarea" name="detail" id="detail"
+                              placeholder="Describe the work requirements, skills needed, timeline, and any specific instructions..."
                               required></textarea>
                 </div>
-                
+
                 <!-- City and Location Row -->
                 <div class="form-row">
                     <div class="form-group">
@@ -536,23 +531,23 @@ include "menu.html";
                             <option value="Bangalore">Bangalore</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-map-marker-alt me-2"></i>Specific Location *
                         </label>
-                        <input class="form-control" type="text" name="location" id="location" 
+                        <input class="form-control" type="text" name="location" id="location"
                                placeholder="e.g., Vijay Nagar, Near City Center" required>
                     </div>
                 </div>
-                
+
                 <!-- File Upload -->
                 <div class="form-group">
                     <label class="form-label">
                         <i class="fas fa-image me-2"></i>Job Image (Optional)
                     </label>
                     <div class="file-upload-container" id="fileUploadContainer">
-                        <input class="file-upload-input" type="file" name="pdtimg" id="pdtimg" 
+                        <input class="file-upload-input" type="file" name="pdtimg" id="pdtimg"
                                accept=".jpg,.png,.jpeg">
                         <div class="file-upload-content" id="uploadContent">
                             <div class="file-upload-icon">
@@ -570,7 +565,7 @@ include "menu.html";
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Submit Section -->
                 <div class="submit-section">
                     <button type="submit" class="btn-submit" id="submitBtn">
@@ -581,7 +576,7 @@ include "menu.html";
             </form>
         </div>
     </div>
-    
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -592,7 +587,7 @@ include "menu.html";
             easing: 'ease-in-out',
             once: true
         });
-        
+
         // Form elements
         const jobForm = document.getElementById('jobForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -602,7 +597,7 @@ include "menu.html";
         const uploadContent = document.getElementById('uploadContent');
         const fileSelected = document.getElementById('fileSelected');
         const fileName = document.getElementById('fileName');
-        
+
         // File upload handling
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -614,63 +609,63 @@ include "menu.html";
                 fileUploadContainer.style.background = 'rgba(16, 185, 129, 0.05)';
             }
         });
-        
+
         // Drag and drop functionality
         fileUploadContainer.addEventListener('dragover', function(e) {
             e.preventDefault();
             this.classList.add('dragover');
         });
-        
+
         fileUploadContainer.addEventListener('dragleave', function(e) {
             e.preventDefault();
             this.classList.remove('dragover');
         });
-        
+
         fileUploadContainer.addEventListener('drop', function(e) {
             e.preventDefault();
             this.classList.remove('dragover');
-            
+
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 fileInput.files = files;
                 fileInput.dispatchEvent(new Event('change'));
             }
         });
-        
+
         // Form validation and submission
         jobForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             // Basic validation
             const jobTitle = document.getElementById('jobTitle').value.trim();
             const salary = document.getElementById('salary').value;
             const detail = document.getElementById('detail').value.trim();
             const city = document.getElementById('city').value;
             const location = document.getElementById('location').value.trim();
-            
+
             if (!jobTitle || !salary || !detail || !city || !location) {
                 showError('Please fill in all required fields.');
                 return;
             }
-            
+
             if (salary < 100) {
                 showError('Salary must be at least ₹100.');
                 return;
             }
-            
+
             if (detail.length < 20) {
                 showError('Job description must be at least 20 characters long.');
                 return;
             }
-            
+
             // Show loading state
             submitBtn.disabled = true;
             loadingIcon.classList.add('show');
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Post...';
-            
+
             // Update progress steps
             updateProgressSteps(2);
-            
+
             // Submit form after a short delay (for UX)
             setTimeout(() => {
                 updateProgressSteps(3);
@@ -679,18 +674,18 @@ include "menu.html";
                 }, 500);
             }, 1000);
         });
-        
+
         // Helper functions
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
             errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + message;
             errorDiv.style.display = 'block';
-            
+
             setTimeout(() => {
                 errorDiv.style.display = 'none';
             }, 5000);
         }
-        
+
         function updateProgressSteps(activeStep) {
             const steps = document.querySelectorAll('.step');
             steps.forEach((step, index) => {
@@ -706,29 +701,29 @@ include "menu.html";
                 }
             });
         }
-        
+
         // Add focus effects to form controls
         document.querySelectorAll('.form-control').forEach(control => {
             control.addEventListener('focus', function() {
                 this.parentElement.style.transform = 'translateY(-2px)';
                 this.parentElement.style.transition = 'transform 0.3s ease';
             });
-            
+
             control.addEventListener('blur', function() {
                 this.parentElement.style.transform = 'translateY(0)';
             });
         });
-        
+
         // Character counter for description
         const detailTextarea = document.getElementById('detail');
         const charCounter = document.createElement('div');
         charCounter.style.cssText = 'text-align: right; font-size: 0.8rem; color: #6b7280; margin-top: 0.5rem;';
         detailTextarea.parentElement.appendChild(charCounter);
-        
+
         detailTextarea.addEventListener('input', function() {
             const length = this.value.length;
             charCounter.textContent = `${length} characters`;
-            
+
             if (length < 20) {
                 charCounter.style.color = 'var(--danger-color)';
             } else if (length < 50) {
@@ -737,51 +732,9 @@ include "menu.html";
                 charCounter.style.color = 'var(--success-color)';
             }
         });
-        
+
         // Trigger initial character count
         detailTextarea.dispatchEvent(new Event('input'));
     </script>
 </body>
-=======
-
-echo "<h1 class='d-flex justify-content-center bg-white p-3 mt-3'>Hello {$_SESSION['user_name']}</h1>";
-
-
-echo "<h1 class='d-flex justify-content-center '>Create job Post </h1>";
-
-?>
-
-
-<!DOCTYPE html> <html lang="en"> 
-<head>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-<link rel="stylesheet" href="creatjob.css">
-</head>
-
-<body>
-
-<div class="d-flex justify-content-center align-items-center vh-80">
-<form class="w-50 bg-warning p-3" action="upload.php" method="post" enctype="multipart/form-data">
-
-<input class="form-control mt-3" type="text" placeholder="Job / Work name" name="jobTitle" required>
-<input class="form-control mt-2" type="number" placeholder="Budget / Expected Wage you pay " name="salary" required>
-<textarea class="form-control mt-2" name="detail" cols="30" rows="5" placeholder="Job Detail Description :" reqired></textarea> 
-<input class="form-control mt-3" type="text" placeholder="City in which you used to live" name="city" reqired>
-<input class="form-control mt-3" type="text" placeholder="Location:describe proper location" name="location" reqired>
-<input class="form-control mt-2" type="file" accept=" .jpg, .png, .jpeg" name="pdtimg" reqired>
-<div class="mt-3 text-center">
-
-<button class="btn btn-success"> Create Post</button>
-
-</div>
-</form>
-</div>
-
-
-<script src="creatjob.js"></script>
-</body>
-
->>>>>>> 39578cd55d61ac8c691bf23cfd350dd7248f990a
 </html>
-
-?>

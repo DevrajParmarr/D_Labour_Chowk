@@ -27,6 +27,9 @@ define('SESSION_TIMEOUT', 30 * 60); // 30 minutes
 define('BCRYPT_COST', 12);
 define('CSRF_TOKEN_LENGTH', 32);
 
+// Development Mode
+define('DEVELOPMENT_MODE', true);
+
 // Error Reporting
 if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
     error_reporting(E_ALL);
@@ -172,10 +175,15 @@ if (!headers_sent()) {
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     
-    // Only set CSP if not in development mode
+    // Content Security Policy - Disabled in development mode for Bootstrap Icons
     if (!defined('DEVELOPMENT_MODE') || !DEVELOPMENT_MODE) {
-        header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;");
+        header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: https://via.placeholder.com https://images.unsplash.com;");
     }
+
+    // Prevent CSP caching issues
+    header("Cache-Control: no-cache, no-store, must-revalidate");
+    header("Pragma: no-cache");
+    header("Expires: 0");
 }
 
 ?>

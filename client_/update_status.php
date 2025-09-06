@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->close();
 
     // Fetch the client_id related to this job_post_id
-    $client_query = "SELECT client_id FROM lab_post WHERE post_ID = ?";
+    $client_query = "SELECT owner FROM job_post WHERE job_post_id = ?";
     $stmt = $conn->prepare($client_query);
 
     if ($stmt === false) {

@@ -4,7 +4,7 @@
  * Comprehensive testing suite for the application
  */
 
-require_once '../Shared/config.php';
+require_once './Shared/config.php';
 
 class TestRunner {
     private $tests = [];
@@ -208,7 +208,7 @@ $testRunner->addTest('Database CRUD Operations', function() {
     
     $user_data = $result->fetch_assoc();
     TestRunner::assertEquals($test_email, $user_data['email_id'], 'Email should match');
-    TestRunner::assertEquals($test_mobile, $user_data['mobile_no'], 'Mobile should match');
+    TestRunner::assertEquals((string)$test_mobile, (string)$user_data['mobile_no'], 'Mobile should match');
     
     // Clean up test data
     $stmt = $db->prepare("DELETE FROM user WHERE user_ID = ?");
@@ -249,11 +249,11 @@ $testRunner->addTest('Security Measures', function() {
 // File Structure Tests
 $testRunner->addTest('File Structure', function() {
     $required_files = [
-        '../Shared/config.php',
-        '../Shared/login_form.php',
-        '../Shared/signup_form.php',
-        '../client_/dashboard.php',
-        '../Labour/dashboard.php'
+        './Shared/config.php',
+        './Shared/login_form.php',
+        './Shared/signup_form.php',
+        './client_/dashboard.php',
+        './Labour/dashboard.php'
     ];
     
     foreach ($required_files as $file) {
@@ -321,64 +321,79 @@ ob_start();
     <style>
         body {
             font-family: 'Fira Code', monospace;
-            background: #1a1a1a;
-            color: #ffffff;
+            background: #181818;
+            color: #f5f5f5;
             padding: 20px;
         }
         .test-container {
-            background: #2d2d2d;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            max-width: 1000px;
+            background: #23272b;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+            max-width: 900px;
             margin: 0 auto;
         }
         .test-output {
-            background: #1e1e1e;
-            border: 1px solid #404040;
+            background: #181c20;
+            border: 1px solid #343a40;
             border-radius: 8px;
             padding: 20px;
             white-space: pre-line;
-            font-size: 14px;
-            line-height: 1.6;
+            font-size: 15px;
+            line-height: 1.7;
             max-height: 600px;
             overflow-y: auto;
+            color: #e0e0e0;
         }
         .test-header {
-            color: #4CAF50;
+            color: #00e676;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 28px;
+            letter-spacing: 1px;
         }
         .btn-run {
-            background: #4CAF50;
+            background: #00e676;
             border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            color: #23272b;
+            padding: 10px 24px;
+            border-radius: 6px;
             cursor: pointer;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
+            font-weight: 500;
+            transition: background 0.2s;
         }
-        .btn-run:hover {
-            background: #45a049;
+        .btn-run:hover, .btn-run:focus {
+            background: #00c853;
+            outline: none;
         }
         .timestamp {
-            color: #888;
-            font-size: 12px;
-            margin-bottom: 10px;
+            color: #bdbdbd;
+            font-size: 13px;
+            margin-bottom: 12px;
+            text-align: right;
+        }
+        @media (max-width: 600px) {
+            .test-container {
+                padding: 12px;
+            }
+            .test-output {
+                font-size: 13px;
+                padding: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="test-container">
-        <h1 class="test-header">🧪 D Labour Chowk Test Suite</h1>
+    <main class="test-container" role="main" aria-label="Test Results">
+        <h1 class="test-header" tabindex="0">🧪 D Labour Chowk Test Suite</h1>
         
-        <div class="timestamp">
+        <div class="timestamp" aria-label="Test run timestamp">
             Test run on: <?php echo date('Y-m-d H:i:s'); ?>
         </div>
         
-        <button class="btn-run" onclick="location.reload()">🔄 Run Tests Again</button>
+        <button class="btn-run" onclick="location.reload()" aria-label="Run tests again">🔄 Run Tests Again</button>
         
-        <div class="test-output" id="testOutput">
+        <section class="test-output" id="testOutput" aria-live="polite" aria-atomic="true">
 <?php
 try {
     $testRunner->runTests();
@@ -387,8 +402,8 @@ try {
     echo "❌ Test suite failed to run: " . htmlspecialchars($e->getMessage());
 }
 ?>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <script>
         // Auto-scroll to bottom of output
@@ -404,7 +419,8 @@ try {
             .replace(/❌ Some tests failed/g, '<span style="color: #f44336; font-weight: bold;">❌ Some tests failed</span>');
     </script>
 </body>
-</html><?php
+</html>
+<?php
 $content = ob_get_clean();
 echo $content;
 ?>

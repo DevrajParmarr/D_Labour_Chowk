@@ -1,8 +1,18 @@
 
 <?php
+require_once '../Shared/config.php';
 
+// Check if user is logged in and is a client
+if (!isLoggedIn()) {
+    redirect('../Shared/login_form.php');
+}
 
-include "../Shared/sqlconnection.php";
+if (getCurrentUserType() !== 'User') {
+    redirect('../Shared/login_form.php?error=unauthorized');
+}
+
+$db = Database::getInstance();
+$conn = $db->getConnection();
 
 // Retrieve search criteria from URL parameters
 $workType = $_GET['workType'];
@@ -502,17 +512,15 @@ $result = $stmt->get_result();
         <?php endif; ?>
         
         <div class="navigation-buttons">
-            <a href="home.php" class="btn-nav">
-                <i class="fas fa-arrow-left me-2"></i>Back to Search
+            <a href="availableLabour.php" class="btn-nav">
+                <i class="fas fa-arrow-left me-2"></i>Back to Browse
             </a>
             <a href="../Shared/index.html" class="btn-nav">
                 <i class="fas fa-home me-2"></i>Back to Home
             </a>
-            <?php if ($result->num_rows > 0): ?>
-                <a href="advanced_search.php" class="btn-nav primary">
-                    <i class="fas fa-filter me-2"></i>Advanced Search
-                </a>
-            <?php endif; ?>
+            <a href="advanced_search.php" class="btn-nav primary">
+                <i class="fas fa-search-plus me-2"></i>Advanced Search
+            </a>
         </div>
     </div>
     

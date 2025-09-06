@@ -1,17 +1,15 @@
 <?php
 require_once 'config.php';
 
-// Clear all session variables
-$_SESSION = array();
+// Destroy the session
+session_unset();
+session_destroy();
 
-// Destroy the session cookie if it exists
+// Clear any cookies if they exist
 if (isset($_COOKIE[session_name()])) {
     setcookie(session_name(), '', time() - 3600, '/');
 }
 
-// Destroy the session
-session_destroy();
-
-// Redirect to login with success message
+// Redirect to login page with logout success message
 redirect('login_form.php?logout_success=1');
 ?>

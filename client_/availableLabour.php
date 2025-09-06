@@ -1,6 +1,17 @@
-<?php 
-session_start();
-include "../Shared/sqlconnection.php";
+<?php
+require_once '../Shared/config.php';
+
+// Check if user is logged in and is a client
+if (!isLoggedIn()) {
+    redirect('../Shared/login_form.php');
+}
+
+if (getCurrentUserType() !== 'User') {
+    redirect('../Shared/login_form.php?error=unauthorized');
+}
+
+$db = Database::getInstance();
+$conn = $db->getConnection();
 
 $search = '';
 $city = '';
@@ -757,7 +768,7 @@ include "menu.html";
                         <option value="Other" <?php if ($jobTitle == 'Other') echo 'selected'; ?>>Other</option>
                     </select>
                 </div>
-                
+
                 <div class="filter-group">
                     <label class="filter-label">
                         <i class="fas fa-map-marker-alt me-2"></i>City
@@ -773,11 +784,20 @@ include "menu.html";
                         <option value="Delhi" <?php if ($city == 'Delhi') echo 'selected'; ?>>Delhi</option>
                     </select>
                 </div>
-                
+
                 <button type="submit" class="filter-btn">
                     <i class="fas fa-search me-2"></i>Search
                 </button>
             </form>
+
+            <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
+                <a href="advanced_search.php" class="btn-nav primary" style="display: inline-block; margin: 0;">
+                    <i class="fas fa-search-plus me-2"></i>Advanced Search
+                </a>
+                <p style="color: #6b7280; font-size: 0.9rem; margin-top: 0.5rem;">
+                    More filters, sorting options, and better search results
+                </p>
+            </div>
         </div>
         
         <!-- Results Section -->

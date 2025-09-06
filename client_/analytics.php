@@ -251,7 +251,7 @@ try {
         .chart-container {
             margin: 30px;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 30px;
         }
 
@@ -453,12 +453,26 @@ try {
             </h5>
             <canvas id="applicationsChart" class="chart-canvas"></canvas>
         </div>
-        
+
         <div class="chart-card">
             <h5 class="chart-title">
                 <i class="bi bi-bar-chart"></i> Jobs by Work Type
             </h5>
             <canvas id="jobTypesChart" class="chart-canvas"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h5 class="chart-title">
+                <i class="bi bi-graph-up"></i> Monthly Job Posting Trends
+            </h5>
+            <canvas id="monthlyTrendsChart" class="chart-canvas"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h5 class="chart-title">
+                <i class="bi bi-trophy"></i> Worker Performance
+            </h5>
+            <canvas id="workerPerformanceChart" class="chart-canvas"></canvas>
         </div>
     </div>
 
@@ -632,6 +646,104 @@ try {
             
             circle.style.strokeDashoffset = offset;
         }
+
+        // Monthly Trends Chart
+        const monthlyTrendsCtx = document.getElementById('monthlyTrendsChart').getContext('2d');
+        new Chart(monthlyTrendsCtx, {
+            type: 'line',
+            data: {
+                labels: [
+                    <?php foreach (array_reverse($monthly_data) as $data): ?>
+                        '<?php echo date('M Y', strtotime($data['month'] . '-01')); ?>',
+                    <?php endforeach; ?>
+                ],
+                datasets: [{
+                    label: 'Jobs Posted',
+                    data: [
+                        <?php foreach (array_reverse($monthly_data) as $data): ?>
+                            <?php echo $data['jobs_posted']; ?>,
+                        <?php endforeach; ?>
+                    ],
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Worker Performance Chart
+        const workerPerformanceCtx = document.getElementById('workerPerformanceChart').getContext('2d');
+        new Chart(workerPerformanceCtx, {
+            type: 'radar',
+            data: {
+                labels: [
+                    <?php foreach (array_slice($top_workers, 0, 6) as $worker): ?>
+                        '<?php echo addslashes(substr($worker['user_name'], 0, 10)); ?>',
+                    <?php endforeach; ?>
+                ],
+                datasets: [{
+                    label: 'Rating',
+                    data: [
+                        <?php foreach (array_slice($top_workers, 0, 6) as $worker): ?>
+                            <?php echo $worker['avg_rating'] ?: 0; ?>,
+                        <?php endforeach; ?>
+                    ],
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(40, 167, 69, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 5,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
 
         // Animate all progress rings
         document.addEventListener('DOMContentLoaded', function() {

@@ -1,6 +1,17 @@
 <?php
-session_start();
-include "../Shared/sqlconnection.php";
+require_once '../Shared/config.php';
+
+// Check if user is logged in and is a labour
+if (!isLoggedIn()) {
+    redirect('../Shared/login_form.php');
+}
+
+if (getCurrentUserType() !== 'Labour') {
+    redirect('../Shared/login_form.php?error=unauthorized');
+}
+
+$db = Database::getInstance();
+$conn = $db->getConnection();
 
 $search = '';
 $location = '';
@@ -47,288 +58,684 @@ include "menu.html";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Listings</title>
+    <title>Available Jobs - D Labour Chowk</title>
+    <meta name="description" content="Browse available job opportunities and apply for positions that match your skills.">
 
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Enhanced CSS Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
+        :root {
+            --primary-color: #28a745;
+            --secondary-color: #20c997;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --gradient-primary: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        * {
             margin: 0;
             padding: 0;
-            color: #333;
+            box-sizing: border-box;
         }
 
-        .container {
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+            min-height: 100vh;
+        }
+
+        /* Header Section */
+        .header-section {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .header-content {
+            text-align: center;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 2;
         }
 
-        .heading {
+        .main-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-subtitle {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 15px;
             text-align: center;
-            font-size: 36px;
-            margin-bottom: 40px;
-            color: #343a40;
-            font-weight: 700;
+            min-width: 140px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fbbf24;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f1f5f9;
+        }
+
+        .filter-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+            text-align: center;
         }
 
         .filter-form {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 40px;
-            gap: 10px;
-        }
-
-        .filter-form input, .filter-form select {
-            padding: 12px;
-            border-radius: 5px;
-            border: 1px solid #ced4da;
-            font-size: 16px;
-            width: 100%;
-        }
-
-        .filter-form button {
-            padding: 12px 20px;
-            background-color: #007bff;
-            border: none;
-            color: #fff;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 150px;
-            font-weight: 500;
-            transition: background-color 0.3s ease;
-        }
-
-        .filter-form button:hover {
-            background-color: #0056b3;
-        }
-
-        .job-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
         }
 
-        .job-card {
-            background-color: #ffffff;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .filter-group {
             display: flex;
             flex-direction: column;
         }
 
+        .filter-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-select {
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: white;
+            transition: all 0.3s ease;
+            color: #374151;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+
+        .filter-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
+        }
+
+        /* Job Grid */
+        .job-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 2rem;
+        }
+
+        .job-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            border: 1px solid #f1f5f9;
+        }
+
         .job-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .job-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-accent);
         }
 
         .job-image {
             width: 100%;
-            height: 200px;
+            height: 220px;
             object-fit: cover;
-            border-bottom: 1px solid #e9ecef;
+            position: relative;
+        }
+
+        .job-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
         }
 
         .job-content {
-            padding: 20px;
-            flex-grow: 1;
+            padding: 1.5rem;
         }
 
         .job-title {
-            font-size: 24px;
+            font-size: 1.4rem;
             font-weight: 700;
-            margin-bottom: 15px;
-            color: #007bff;
-            transition: color 0.3s ease;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            line-height: 1.3;
         }
 
-        .job-title:hover {
-            color: #0056b3;
+        .job-details {
+            margin: 1.5rem 0;
         }
 
-        .job-location, .job-salary {
-            font-size: 16px;
-            margin-bottom: 10px;
+        .detail-row {
             display: flex;
             align-items: center;
-            color: #6c757d;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
         }
 
-        .job-location i, .job-salary i {
-            margin-right: 8px;
+        .detail-icon {
+            width: 20px;
+            margin-right: 0.75rem;
+            color: var(--primary-color);
+            text-align: center;
         }
 
-        .job-detail {
-            font-size: 14px;
-            color: #495057;
-            margin-bottom: 20px;
+        .detail-label {
+            font-weight: 600;
+            color: #374151;
+            margin-right: 0.5rem;
+            min-width: 80px;
+        }
+
+        .detail-value {
+            color: #6b7280;
+            flex: 1;
+        }
+
+        .salary-value {
+            color: var(--success-color);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .job-description {
+            color: #6b7280;
+            font-size: 0.95rem;
             line-height: 1.6;
+            margin-bottom: 1.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .apply-btn {
-            background-color: #28a745;
-            color: #fff;
-            padding: 12px 0;
+            background: var(--gradient-primary);
+            color: white;
             border: none;
-            border-radius: 5px;
+            padding: 1rem;
+            border-radius: 10px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 16px;
-            text-align: center;
-            transition: background-color 0.3s ease, transform 0.3s ease;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
             width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .apply-btn:hover {
-            background-color: #218838;
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        /* Pagination */
+        .pagination-section {
+            display: flex;
+            justify-content: center;
+            margin: 3rem 0;
         }
 
         .pagination {
             display: flex;
-            justify-content: center;
-            margin-top: 40px;
+            gap: 0.5rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         }
 
         .pagination a {
-            padding: 10px 15px;
-            margin: 0 5px;
-            background-color: #007bff;
-            color: #fff;
-            border-radius: 5px;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
             text-decoration: none;
-            transition: background-color 0.3s ease;
+            color: #6b7280;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 44px;
+            text-align: center;
         }
 
         .pagination a:hover {
-            background-color: #0056b3;
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
         }
 
         .pagination .active {
-            background-color: #0056b3;
+            background: var(--primary-color);
+            color: white;
         }
 
-        .load-more-container {
-            text-align: center;
-            margin-top: 40px;
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .filter-form {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .job-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stats-row {
+                gap: 1rem;
+            }
+
+            .stat-item {
+                min-width: 110px;
+                padding: 1rem;
+            }
         }
 
-        .load-more-btn {
-            padding: 12px 20px;
-            background-color: #007bff;
-            border: none;
-            color: #fff;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .load-more-btn:hover {
-            background-color: #0056b3;
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
         }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h1 class="heading">Explore the Best Suitable Job for You</h1>
-
-    <!-- Filter Form -->
-    <form class="filter-form" method="POST" action="">
-        <select name="jobTitle">
-            <option value="">Select Work Type</option>
-            <option value="Plumber" <?php if ($jobTitle == 'Plumber') echo 'selected'; ?>>Plumber</option>
-            <option value="Electrician" <?php if ($jobTitle == 'Electrician') echo 'selected'; ?>>Electrician</option>
-            <option value="Mason" <?php if ($jobTitle == 'Mason') echo 'selected'; ?>>Mason</option>
-            <option value="Carpenter" <?php if ($jobTitle == 'Carpenter') echo 'selected'; ?>>Carpenter</option>
-            <option value="Painter" <?php if ($jobTitle == 'Painter') echo 'selected'; ?>>Painter</option>
-            <option value="Gardener" <?php if ($jobTitle == 'Gardener') echo 'selected'; ?>>Gardener</option>
-            <option value="Laborer" <?php if ($jobTitle == 'Laborer') echo 'selected'; ?>>Laborer</option>
-            <option value="Other" <?php if ($jobTitle == 'Other') echo 'selected'; ?>>Other</option>
-        </select>
-        <select name="location">
-            <option value="">Select Location</option>
-            <option value="Indore" <?php if ($location == 'Indore') echo 'selected'; ?>>Indore</option>
-            <option value="Bhopal" <?php if ($location == 'Bhopal') echo 'selected'; ?>>Bhopal</option>
-            <option value="Ujjain" <?php if ($location == 'Ujjain') echo 'selected'; ?>>Ujjain</option>
-        </select>
-        <button type="submit">Search</button>
-    </form>
-
-    <!-- Job Listings -->
-    <div class="job-grid" id="job-grid">
-        <?php
-        if (mysqli_num_rows($sql_result) > 0) {
-            while ($dbrow = mysqli_fetch_assoc($sql_result)) {
-                echo "
-                <div class='job-card'>
-                    <img src='$dbrow[impath]' alt='$dbrow[jobTitle]' class='job-image'>
-                    <div class='job-content'>
-                        <h2 class='job-title'>$dbrow[jobTitle]</h2>
-                        <div class='job-location'><i class='fas fa-map-marker-alt'></i>$dbrow[location]</div>
-                        <div class='job-salary'><i class='fas fa-indian-rupee-sign'></i>Salary: $dbrow[salary]</div>
-                        <div class='job-detail'>$dbrow[detail]</div>
-                        <button class='apply-btn' onclick='applyForJob($dbrow[post_ID])'>Apply Now</button>
-
-                    </div>
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="header-content">
+            <h1 class="main-title" data-aos="fade-up">
+                <i class="fas fa-search me-3"></i>Find Your Perfect Job
+            </h1>
+            <p class="main-subtitle" data-aos="fade-up" data-aos-delay="200">
+                Discover exciting job opportunities that match your skills and experience.
+                Apply to jobs from verified employers and grow your career.
+            </p>
+            
+            <div class="stats-row" data-aos="fade-up" data-aos-delay="400">
+                <div class="stat-item">
+                    <span class="stat-number"><?php echo $total_jobs; ?>+</span>
+                    <div class="stat-label">Available Jobs</div>
                 </div>
-                ";
-            }
-        } else {
-            echo "<p>No jobs found. Please adjust your search or filter criteria.</p>";
-        }
-        ?>
-    </div>
-
-    <!-- Pagination -->
-    <div class="pagination">
-        <?php
-        if ($total_pages > 1) {
-            for ($i = 1; $i <= $total_pages; $i++) {
-                echo "<a href='?page=$i' class='" . ($i == $page ? "active" : "") . "'>$i</a>";
-            }
-        }
-        ?>
-    </div>
-
-    <!-- Load More Button -->
-    <?php if ($page < $total_pages): ?>
-        <div class="load-more-container">
-            <a href="?page=<?php echo $page + 1; ?>" class="load-more-btn">Load More</a>
+                <div class="stat-item">
+                    <span class="stat-number">500+</span>
+                    <div class="stat-label">Active Employers</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">25+</span>
+                    <div class="stat-label">Cities Covered</div>
+                </div>
+            </div>
         </div>
-    <?php endif; ?>
-</div>
+    </div>
 
-<script>
-function applyForJob(post_ID) {
-    if (confirm('Are you sure you want to apply for this job?')) {
-        fetch('apply_job.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `post_ID=${post_ID}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Filter Section -->
+        <div class="filter-section" data-aos="fade-up" data-aos-delay="600">
+            <h2 class="filter-title">
+                <i class="fas fa-filter me-2"></i>Find Jobs That Match Your Skills
+            </h2>
+            <form class="filter-form" method="POST" action="">
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-briefcase me-2"></i>Job Type
+                    </label>
+                    <select name="jobTitle" class="filter-select">
+                        <option value="">All Job Types</option>
+                        <option value="Plumber" <?php if ($jobTitle == 'Plumber') echo 'selected'; ?>>Plumber</option>
+                        <option value="Electrician" <?php if ($jobTitle == 'Electrician') echo 'selected'; ?>>Electrician</option>
+                        <option value="Mason" <?php if ($jobTitle == 'Mason') echo 'selected'; ?>>Mason</option>
+                        <option value="Carpenter" <?php if ($jobTitle == 'Carpenter') echo 'selected'; ?>>Carpenter</option>
+                        <option value="Painter" <?php if ($jobTitle == 'Painter') echo 'selected'; ?>>Painter</option>
+                        <option value="Gardener" <?php if ($jobTitle == 'Gardener') echo 'selected'; ?>>Gardener</option>
+                        <option value="Laborer" <?php if ($jobTitle == 'Laborer') echo 'selected'; ?>>Laborer</option>
+                        <option value="Welder" <?php if ($jobTitle == 'Welder') echo 'selected'; ?>>Welder</option>
+                        <option value="Other" <?php if ($jobTitle == 'Other') echo 'selected'; ?>>Other</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-map-marker-alt me-2"></i>Location
+                    </label>
+                    <select name="location" class="filter-select">
+                        <option value="">All Locations</option>
+                        <option value="Indore" <?php if ($location == 'Indore') echo 'selected'; ?>>Indore</option>
+                        <option value="Bhopal" <?php if ($location == 'Bhopal') echo 'selected'; ?>>Bhopal</option>
+                        <option value="Ujjain" <?php if ($location == 'Ujjain') echo 'selected'; ?>>Ujjain</option>
+                        <option value="Jabalpur" <?php if ($location == 'Jabalpur') echo 'selected'; ?>>Jabalpur</option>
+                        <option value="Kota" <?php if ($location == 'Kota') echo 'selected'; ?>>Kota</option>
+                        <option value="Jaipur" <?php if ($location == 'Jaipur') echo 'selected'; ?>>Jaipur</option>
+                        <option value="Delhi" <?php if ($location == 'Delhi') echo 'selected'; ?>>Delhi</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="filter-btn">
+                    <i class="fas fa-search me-2"></i>Search Jobs
+                </button>
+            </form>
+        </div>
+
+        <!-- Job Listings -->
+        <div class="job-grid" id="job-grid" data-aos="fade-up" data-aos-delay="800">
+            <?php
+            if (mysqli_num_rows($sql_result) > 0) {
+                $jobCount = 0;
+                while ($dbrow = mysqli_fetch_assoc($sql_result)) {
+                    $jobCount++;
+                    $imageUrl = !empty($dbrow['impath']) ? htmlspecialchars($dbrow['impath']) : 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400';
+                    $description = htmlspecialchars($dbrow['detail']);
+                    $shortDescription = strlen($description) > 120 ? substr($description, 0, 120) . '...' : $description;
+                    
+                    echo "
+                    <div class='job-card fade-in-up' data-aos='fade-up' data-aos-delay='" . ($jobCount * 100) . "'>
+                        <div class='job-image-container'>
+                            <img src='{$imageUrl}' alt='" . htmlspecialchars($dbrow['jobTitle']) . "' class='job-image' onerror=\"this.src='https://via.placeholder.com/400x220/28a745/ffffff?text=" . urlencode($dbrow['jobTitle']) . "'\">
+                            <div class='job-badge'>New</div>
+                        </div>
+                        
+                        <div class='job-content'>
+                            <h3 class='job-title'>" . htmlspecialchars($dbrow['jobTitle']) . "</h3>
+                            
+                            <div class='job-details'>
+                                <div class='detail-row'>
+                                    <i class='fas fa-map-marker-alt detail-icon'></i>
+                                    <span class='detail-label'>Location:</span>
+                                    <span class='detail-value'>" . htmlspecialchars($dbrow['location']) . "</span>
+                                </div>
+                                
+                                <div class='detail-row'>
+                                    <i class='fas fa-rupee-sign detail-icon'></i>
+                                    <span class='detail-label'>Salary:</span>
+                                    <span class='detail-value salary-value'>₹" . number_format($dbrow['salary']) . "</span>
+                                </div>
+                                
+                                <div class='detail-row'>
+                                    <i class='fas fa-city detail-icon'></i>
+                                    <span class='detail-label'>City:</span>
+                                    <span class='detail-value'>" . htmlspecialchars($dbrow['city']) . "</span>
+                                </div>
+                            </div>
+                            
+                            <p class='job-description'>{$shortDescription}</p>
+                            
+                            <button class='apply-btn' onclick='applyForJob(" . $dbrow['post_ID'] . ")'>
+                                <i class='fas fa-paper-plane me-2'></i>Apply Now
+                            </button>
+                        </div>
+                    </div>";
+                }
+            } else {
+                echo "
+                <div style='grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: white; border-radius: 20px; margin-bottom: 2rem;'>
+                    <div style='font-size: 4rem; color: #d1d5db; margin-bottom: 1rem;'>
+                        <i class='fas fa-search'></i>
+                    </div>
+                    <h3 style='font-size: 1.5rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'>No Jobs Found</h3>
+                    <p style='color: #6b7280; margin-bottom: 2rem;'>
+                        We couldn't find any jobs matching your search criteria.<br>
+                        Try adjusting your filters or search in a different location.
+                    </p>
+                </div>";
+            }
+            ?>
+        </div>
+
+        <!-- Pagination -->
+        <?php if ($total_pages > 1): ?>
+            <div class="pagination-section">
+                <div class="pagination">
+                    <?php if ($page > 1): ?>
+                        <a href="?page=<?= $page - 1 ?>&location=<?= urlencode($location) ?>&jobTitle=<?= urlencode($jobTitle) ?>">
+                            <i class="fas fa-chevron-left me-2"></i>Previous
+                        </a>
+                    <?php endif; ?>
+                    
+                    <?php
+                    $start = max(1, $page - 2);
+                    $end = min($total_pages, $page + 2);
+                    
+                    if ($start > 1): ?>
+                        <a href="?page=1&location=<?= urlencode($location) ?>&jobTitle=<?= urlencode($jobTitle) ?>">1</a>
+                        <?php if ($start > 2): ?>
+                            <span>...</span>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                    
+                    <?php for ($i = $start; $i <= $end; $i++): ?>
+                        <a href="?page=<?= $i ?>&location=<?= urlencode($location) ?>&jobTitle=<?= urlencode($jobTitle) ?>"
+                           class="<?= ($i == $page) ? 'active' : '' ?>"><?= $i ?></a>
+                    <?php endfor; ?>
+                    
+                    <?php if ($end < $total_pages): ?>
+                        <?php if ($end < $total_pages - 1): ?>
+                            <span>...</span>
+                        <?php endif; ?>
+                        <a href="?page=<?= $total_pages ?>&location=<?= urlencode($location) ?>&jobTitle=<?= urlencode($jobTitle) ?>"><?= $total_pages ?></a>
+                    <?php endif; ?>
+                    
+                    <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?= $page + 1 ?>&location=<?= urlencode($location) ?>&jobTitle=<?= urlencode($jobTitle) ?>">
+                            Next<i class="fas fa-chevron-right ms-2"></i>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
         });
-    }
-}
-</script>
+
+        function applyForJob(post_ID) {
+            if (confirm('Are you sure you want to apply for this job?')) {
+                // Show loading state
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Applying...';
+                button.disabled = true;
+
+                fetch('apply_job.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `post_ID=${post_ID}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.success) {
+                        button.innerHTML = '<i class="fas fa-check me-2"></i>Applied';
+                        button.style.background = 'var(--success-color)';
+                    } else {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                });
+            }
+        }
+
+        // Add hover effects to cards
+        document.querySelectorAll('.job-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-12px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add loading animation to filter button
+        document.querySelector('.filter-btn').addEventListener('click', function(e) {
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching...';
+            this.disabled = true;
+            
+            // Re-enable after form submission
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }, 2000);
+        });
+
+        // Smooth scroll to results after filter
+        if (window.location.search.includes('page=') || document.querySelector('form[method="POST"]')) {
+            setTimeout(() => {
+                document.querySelector('.job-grid')?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
+        }
+
+        // Add staggered animation to cards
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.job-card').forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fade-in-up');
+            });
+        });
+    </script>
 
 </body>
 </html>

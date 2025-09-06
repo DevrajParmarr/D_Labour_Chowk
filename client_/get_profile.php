@@ -2,24 +2,42 @@
 session_start();
 include "../Shared/sqlconnection.php";
 
+// Check if user is logged in and is a client
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
+    echo "Error: Unauthorized access";
+    exit();
+}
+
 if (!isset($_GET['user_id'])) {
     echo "Error: User ID not provided";
     exit();
 }
 
-$user_id = mysqli_real_escape_string($conn, $_GET['user_id']);
+$user_id = filter_var($_GET['user_id'], FILTER_VALIDATE_INT);
+if (!$user_id) {
+    echo "Error: Invalid User ID";
+    exit();
+}
 
 $query = "
 SELECT u.*, lp.workType, lp.experience, lp.salary, lp.location
 FROM user u
 JOIN lab_post lp ON u.user_ID = lp.user_ID
-WHERE u.user_ID = '$user_id'";
+WHERE u.user_ID = ?";
 
-$result = mysqli_query($conn, $query);
-$laborer = mysqli_fetch_assoc($result);
+if ($stmt = mysqli_prepare($conn, $query)) {
+    mysqli_stmt_bind_param($stmt, "i", $user_id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $laborer = mysqli_fetch_assoc($result);
+    mysqli_stmt_close($stmt);
 
-if (!$laborer) {
-    echo "<p>Laborer not found.</p>";
+    if (!$laborer) {
+        echo "<p>Laborer not found.</p>";
+        exit();
+    }
+} else {
+    echo "Error: Database query failed";
     exit();
 }
 

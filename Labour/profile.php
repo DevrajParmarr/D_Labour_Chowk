@@ -1,15 +1,20 @@
 <?php
-session_start();
+require_once '../Shared/config.php';
 
-if (!isset($_SESSION["login_status"]) || $_SESSION["login_status"] == false) {
-    header('Location: ../Shared/login_form.php');
-    exit;
+// Check if user is logged in and is a labour
+if (!isLoggedIn()) {
+    redirect('../Shared/login_form.php');
 }
 
-include "../Shared/sqlconnection.php";
-include "menu.html";
+if (getCurrentUserType() !== 'Labour') {
+    redirect('../Shared/login_form.php?error=unauthorized');
+}
 
-$user_ID = $_SESSION['user_id'];
+$db = Database::getInstance();
+$conn = $db->getConnection();
+$user_ID = getCurrentUserId();
+
+include "menu.html";
 
 // Get user details
 $sql = "SELECT user_name, mobile_no, email_id FROM user WHERE user_ID = ?";

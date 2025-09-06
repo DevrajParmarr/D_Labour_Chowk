@@ -1,15 +1,20 @@
 <?php
-session_start();
+require_once '../Shared/config.php';
 
-if (!isset($_SESSION["login_status"]) || $_SESSION["login_status"] == false) {
-    header('Location: ../Shared/login_form.php');
-    exit;
+// Check if user is logged in and is a labour
+if (!isLoggedIn()) {
+    redirect('../Shared/login_form.php');
 }
 
-include "../Shared/sqlconnection.php";
-include "menu.html";
+if (getCurrentUserType() !== 'Labour') {
+    redirect('../Shared/login_form.php?error=unauthorized');
+}
 
-$laborer_id = $_SESSION['user_id'];
+$db = Database::getInstance();
+$conn = $db->getConnection();
+$laborer_id = getCurrentUserId();
+
+include "menu.html";
 
 // Get applied jobs with detailed information
 $query = "SELECT jp.*, ja.status, ja.applied_at, u.user_name as client_name, u.mobile_no as client_phone 

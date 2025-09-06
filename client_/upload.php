@@ -29,37 +29,66 @@ function closePopup(){
 
 session_start();
 
-// print_r($_POST);
-// echo "<br>";
-// print_r($_FILES);
+// Check if user is logged in and is a client
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
+    header("Location: ../Shared/login.php");
+    exit();
+}
 
-$source_path=$_FILES["pdtimg"]["tmp_name"];
-$file_name="../Shared/images/".$_FILES["pdtimg"]['name'];
+// Validate file upload
+if (!isset($_FILES["pdtimg"]) || $_FILES["pdtimg"]["error"] !== UPLOAD_ERR_OK) {
+    echo "<script>alert('File upload error'); window.location.href='creatjob.php';</script>";
+    exit();
+}
 
-// <br>
-// echo "temp file is in $source_path";
-// <br>
-// echo "File name= $file_name";
+// Validate file type
+$allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+if (!in_array($_FILES["pdtimg"]["type"], $allowed_types)) {
+    echo "<script>alert('Invalid file type. Only JPG, PNG, GIF, and WebP are allowed.'); window.location.href='creatjob.php';</script>";
+    exit();
+}
 
-move_uploaded_file($source_path,$file_name);
+// Validate file size (max 5MB)
+if ($_FILES["pdtimg"]["size"] > 5 * 1024 * 1024) {
+    echo "<script>alert('File too large. Maximum size is 5MB.'); window.location.href='creatjob.php';</script>";
+    exit();
+}
+
+// Sanitize filename and create unique name
+$original_name = basename($_FILES["pdtimg"]["name"]);
+$extension = pathinfo($original_name, PATHINFO_EXTENSION);
+$safe_filename = uniqid() . '_' . preg_replace("/[^a-zA-Z0-9]/", "", pathinfo($original_name, PATHINFO_FILENAME)) . '.' . $extension;
+$file_name = "../Shared/images/" . $safe_filename;
+
+$source_path = $_FILES["pdtimg"]["tmp_name"];
+
+if (!move_uploaded_file($source_path, $file_name)) {
+    echo "<script>alert('Failed to upload file'); window.location.href='creatjob.php';</script>";
+    exit();
+}
 
 include "../Shared/sqlconnection.php";
-$jobTitle=$_POST["jobTitle"];
-$salary=$_POST["salary"];
-$detail=$_POST["detail"];
 
-$city=$_POST["city"];
-$location=$_POST["location"];
+// Sanitize and validate input
+$jobTitle = mysqli_real_escape_string($conn, trim($_POST["jobTitle"]));
+$salary = filter_var($_POST["salary"], FILTER_VALIDATE_INT);
+$detail = mysqli_real_escape_string($conn, trim($_POST["detail"]));
+$city = mysqli_real_escape_string($conn, trim($_POST["city"]));
+$location = mysqli_real_escape_string($conn, trim($_POST["location"]));
 
-$query="insert into job_post(jobTitle,salary,detail,city,location,impath,owner) values('$jobTitle', $salary , '$detail' ,'$city','$location', '$file_name' ,{$_SESSION['user_id']} )";
+// Validate required fields
+if (empty($jobTitle) || !$salary || empty($detail) || empty($city) || empty($location)) {
+    echo "<script>alert('All fields are required'); window.location.href='creatjob.php';</script>";
+    exit();
+}
 
-// echo "$query";
+$query = "INSERT INTO job_post(jobTitle, salary, detail, city, location, impath, owner) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
+if ($stmt = mysqli_prepare($conn, $query)) {
+    mysqli_stmt_bind_param($stmt, "sissssi", $jobTitle, $salary, $detail, $city, $location, $file_name, $_SESSION['user_id']);
 
-if (mysqli_query($conn, $query)) {
-    $redirectUrl = "http://localhost/D_Labour_Chowk/client_/view.php";
-
-
+    if (mysqli_stmt_execute($stmt)) {
+        $redirectUrl = "http://localhost/D_Labour_Chowk/client_/view.php";
 //     echo "<script type = 'text/javascript'>openPopup();</script>";
 //     echo "<script>
 //     setTimeout(function() {

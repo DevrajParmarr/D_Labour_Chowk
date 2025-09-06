@@ -2,13 +2,30 @@
 session_start();
 include "../Shared/sqlconnection.php";
 
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
+    header("Location: ../Shared/login.php");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-   
-   $hire_id = $_POST['hire_id'];
-    $labour_id = $_POST['labour_id'];
-    $client_id = $_POST['client_id'];
-    $rating = $_POST['rating'];
-    $review = $_POST['review'];
+
+   $hire_id = filter_var($_POST['hire_id'], FILTER_VALIDATE_INT);
+   $labour_id = filter_var($_POST['labour_id'], FILTER_VALIDATE_INT);
+   $client_id = filter_var($_POST['client_id'], FILTER_VALIDATE_INT);
+   $rating = filter_var($_POST['rating'], FILTER_VALIDATE_INT);
+   $review = mysqli_real_escape_string($conn, trim($_POST['review']));
+
+   // Validate inputs
+   if (!$hire_id || !$labour_id || !$client_id || !$rating || $rating < 1 || $rating > 5) {
+       echo "<script>alert('Invalid input data'); window.history.back();</script>";
+       exit();
+   }
+
+   // Verify the client_id matches the logged-in user
+   if ($client_id !== $_SESSION['user_id']) {
+       echo "<script>alert('Unauthorized access'); window.location.href='../Shared/login.php';</script>";
+       exit();
+   }
 
    $checkQuery = "SELECT * FROM ratings WHERE client_id = ? AND labour_id = ?";
     $checkStmt = $conn->prepare($checkQuery);

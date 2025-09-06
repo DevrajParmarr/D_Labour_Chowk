@@ -3,49 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    
+    <title>Client Navigation - D Labour Chowk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .modern-navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: #374151 !important;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color) !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            background: var(--gradient-primary);
+            color: white !important;
+        }
+
+        .btn-logout {
+            background: var(--gradient-secondary);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 101, 101, 0.4);
+            color: white;
+        }
+
+        .navbar-toggler {
+            border: none;
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+
+        @media (max-width: 768px) {
+            .navbar-nav {
+                margin-top: 1rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .nav-link {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .btn-logout {
+                margin-top: 0.5rem;
+                justify-content: center;
+            }
+        }
+
+        /* Profile Sidebar Styles */
+        .profile-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100%;
+            background: white;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            z-index: 1050;
+            border-left: 1px solid #e5e7eb;
+        }
+
+        .profile-sidebar.active {
+            right: 0;
+        }
+
+        .profile-header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-content {
+            padding: 1.5rem;
+        }
+
+        .profile-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .profile-card h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .info-value {
+            color: #1f2937;
+        }
+    </style>
 </head>
 <body>
-    <div class="d-flex bg-warning p-2 justify-content-between">
-       <div class="d-flex gap-3">
-
-        <div>
-            <a href="availableLabour.php">
-                <button class="btn btn-success">Home</button>
+    <!-- Modern Navigation Bar -->
+    <nav class="navbar navbar-expand-lg modern-navbar">
+        <div class="container">
+            <a class="navbar-brand" href="dashboard.php">
+                <i class="fas fa-briefcase"></i>
+                D Labour Chowk
             </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.php">
+                            <i class="fas fa-home"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="availableLabour.php">
+                            <i class="fas fa-users"></i>
+                            Browse Workers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="creatjob.php">
+                            <i class="fas fa-plus-circle"></i>
+                            Create Job
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="view.php">
+                            <i class="fas fa-list"></i>
+                            My Posts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="interested_labour.php">
+                            <i class="fas fa-envelope"></i>
+                            Applications
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="advanced_search.php">
+                            <i class="fas fa-search-plus"></i>
+                            Advanced Search
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-3">
+                    <a href="#" class="nav-link" id="profile-link">
+                        <i class="fas fa-user"></i>
+                        Profile
+                    </a>
+                    <a href="../Shared/logout.php" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
         </div>
-
-
-        <div>
-            <a href="creatjob.php">
-                <button class="btn btn-success">Create Job</button>
-            </a>
-        </div>
-
-        <div>
-            <a href="view.php">
-                <button class="btn btn-success">View Post</button>
-            </a>
-        </div>
-
-        <div>
-           
-        <div>
-            <a href="#" class="btn btn-success" id="profile-link">View Profile</a>
-        </div>
- </div>
-
-       </div>
-
-       <div>
-         <a href="../Shared/logout.php">  <button  class="btn btn-danger">Logout</button>
-         </a>
-    </div>
-    </div>
-</body>
-</html>
+    </nav>
 
 
 
@@ -142,39 +387,91 @@
     <!-- Profile Link -->
   
 
-    <!-- Profile Card Sidebar -->
+    <!-- Modern Profile Sidebar -->
     <div id="profile-card" class="profile-sidebar">
-        <a href="#" id="close-btn" class="close-btn">&times;</a>
-        <div id="profile-content">
+        <div class="profile-header">
+            <button id="close-btn" class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <h3>Client Profile</h3>
+            <p>Manage your account</p>
+        </div>
+        <div id="profile-content" class="profile-content">
+            <div class="profile-card">
+                <h3><i class="fas fa-user-circle me-2"></i>Profile Information</h3>
+                <div class="profile-info">
+                    <div class="info-item">
+                        <span class="info-label">Name:</span>
+                        <span class="info-value" id="profile-name">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value" id="profile-email">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Phone:</span>
+                        <span class="info-value" id="profile-phone">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Member Since:</span>
+                        <span class="info-value" id="profile-joined">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h3><i class="fas fa-cog me-2"></i>Quick Actions</h3>
+                <div class="d-grid gap-2">
+                    <a href="profile1.php" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </a>
+                    <a href="hiredLabour.php" class="btn btn-outline-success">
+                        <i class="fas fa-users me-2"></i>My Hired Workers
+                    </a>
+                    <a href="analytics.php" class="btn btn-outline-info">
+                        <i class="fas fa-chart-bar me-2"></i>Analytics
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const profileLink = document.getElementById('profile-link');
             const profileCard = document.getElementById('profile-card');
             const closeBtn = document.getElementById('close-btn');
-            const profileContent = document.getElementById('profile-content');
-         
-         
+
             profileLink.addEventListener('click', function (e) {
                 e.preventDefault();
-                const userId = 1;
-                loadProfileData(userId);
                 profileCard.classList.toggle('active');
+                loadProfileData();
             });
-           closeBtn.addEventListener('click', function (e) {
+
+            closeBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 profileCard.classList.remove('active');
             });
-            
-           function loadProfileData(userId) {
-                fetch(`profile1.php?user_ID=${userId}`)
-                    .then(response => response.text())
-                    .then(data => {
-                        profileContent.innerHTML = data;
-                    })
-                    .catch(error => console.error('Error fetching profile data:', error));
+
+            // Close sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!profileCard.contains(e.target) && !profileLink.contains(e.target)) {
+                    profileCard.classList.remove('active');
+                }
+            });
+
+            function loadProfileData() {
+                // Simulate loading profile data (replace with actual API call)
+                setTimeout(() => {
+                    document.getElementById('profile-name').textContent = 'John Doe';
+                    document.getElementById('profile-email').textContent = 'john@example.com';
+                    document.getElementById('profile-phone').textContent = '+91 9876543210';
+                    document.getElementById('profile-joined').textContent = 'Jan 2024';
+                }, 500);
             }
         });
     </script>

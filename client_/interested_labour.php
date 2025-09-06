@@ -1,12 +1,18 @@
 <?php
-session_start();
+require_once '../Shared/config.php';
 
-if (!isset($_SESSION["login_status"]) || $_SESSION["login_status"] == false) {
-    header('Location: ../Shared/login_form.php');
-    exit;
+// Check if user is logged in and is a client
+if (!isLoggedIn()) {
+    redirect('../Shared/login_form.php');
 }
 
-include "../Shared/sqlconnection.php";
+if (getCurrentUserType() !== 'User') {
+    redirect('../Shared/login_form.php?error=unauthorized');
+}
+
+$db = Database::getInstance();
+$conn = $db->getConnection();
+
 include "menu.html";
 
 if (isset($_GET['post_ID'])) {

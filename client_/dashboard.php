@@ -425,9 +425,13 @@ try {
                     <i class="bi bi-people"></i>
                     Browse Workers
                 </a>
-                <a href="search.php" class="btn-action btn-secondary">
-                    <i class="bi bi-search"></i>
+                <a href="advanced_search.php" class="btn-action btn-secondary">
+                    <i class="bi bi-search-plus"></i>
                     Advanced Search
+                </a>
+                <a href="analytics.php" class="btn-action btn-secondary">
+                    <i class="bi bi-graph-up"></i>
+                    Analytics
                 </a>
             </div>
 

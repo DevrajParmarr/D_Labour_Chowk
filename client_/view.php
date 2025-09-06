@@ -1,14 +1,22 @@
-session_start();
+<?php
+require_once '../Shared/config.php';
 
-if (!isset($_SESSION["login_status"]) || $_SESSION["login_status"] == false) {
-    header('Location: ../Shared/login_form.php');
-    exit;
+// Check if user is logged in and is a client
+if (!isLoggedIn()) {
+    redirect('../Shared/login_form.php');
 }
 
-include "../Shared/sqlconnection.php";
+if (getCurrentUserType() !== 'User') {
+    redirect('../Shared/login_form.php?error=unauthorized');
+}
+
+$db = Database::getInstance();
+$conn = $db->getConnection();
+$user_id = getCurrentUserId();
+
 include "menu.html";
 
-$sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = {$_SESSION['user_id']}");
+$sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id");
 ?>
 
 <!DOCTYPE html>
