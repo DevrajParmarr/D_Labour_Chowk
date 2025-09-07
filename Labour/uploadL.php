@@ -61,9 +61,11 @@ if ($stmt = mysqli_prepare($conn, $query)) {
     mysqli_stmt_bind_param($stmt, "ississs", $_SESSION['user_id'], $workType, $experience, $salary, $location, $city, $file_name);
 
     if (mysqli_stmt_execute($stmt)) {
-        echo "<script>alert('Post created successfully!'); window.location.href='viewLP.php';</script>";
+        echo "<script>alert('Profile created successfully!'); window.location.href='work_posts.php';</script>";
     } else {
-        echo "Error: " . mysqli_error($conn);
+        $error = mysqli_error($conn);
+        error_log("Database error in uploadL.php: " . $error);
+        echo "<script>alert('Error creating profile: " . addslashes($error) . "'); window.location.href='creatLpost.php';</script>";
     }
     mysqli_stmt_close($stmt);
 } else {

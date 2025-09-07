@@ -16,19 +16,58 @@ $user_ID = getCurrentUserId();
 $user_name = $_SESSION['user_name'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $description = $_POST['description'];
-    $image = $_FILES['image']['name'];
-    $target = "../Shared/uploads/" . basename($image);
+    try {
+        // Validate input
+        $description = trim($_POST['description'] ?? '');
+        if (empty($description)) {
+            throw new Exception('Description is required');
+        }
 
-    // Insert the post into the database
-    $sql = "INSERT INTO work_posts (labour_ID, description, image) VALUES (?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("iss", $user_ID, $description, $image);
+        // Handle file upload
+        $image = '';
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            $file_type = $_FILES['image']['type'];
 
-    if ($stmt->execute() && move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
-        echo "<script>alert('Your work has been posted successfully!'); window.location.href='work_posts.php';</script>";
-    } else {
-        echo "<script>alert('Error posting your work. Please try again.');</script>";
+            if (!in_array($file_type, $allowed_types)) {
+                throw new Exception('Invalid file type. Only JPG, PNG, GIF, and WebP are allowed.');
+            }
+
+            if ($_FILES['image']['size'] > 5 * 1024 * 1024) {
+                throw new Exception('File too large. Maximum size is 5MB.');
+            }
+
+            $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+            $safe_filename = uniqid() . '_' . preg_replace("/[^a-zA-Z0-9]/", "", pathinfo($_FILES['image']['name'], PATHINFO_FILENAME)) . '.' . $file_extension;
+            $target = "../Shared/uploads/" . $safe_filename;
+
+            if (!move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+                throw new Exception('Failed to upload file');
+            }
+
+            $image = $safe_filename;
+        }
+
+        // Insert the post into the database
+        $sql = "INSERT INTO work_posts (labour_ID, description, image) VALUES (?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception('Database error: ' . $conn->error);
+        }
+
+        $stmt->bind_param("iss", $user_ID, $description, $image);
+
+        if ($stmt->execute()) {
+            echo "<script>alert('Your work has been posted successfully!'); window.location.href='work_posts.php';</script>";
+        } else {
+            throw new Exception('Failed to save post to database');
+        }
+
+        $stmt->close();
+
+    } catch (Exception $e) {
+        error_log('Work post error: ' . $e->getMessage());
+        echo "<script>alert('Error: " . addslashes($e->getMessage()) . "'); window.history.back();</script>";
     }
 }
 

@@ -62,15 +62,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('ssssss', $username, $email, $mobile, $hashed_password, $usertype, $vcode);
         if ($stmt->execute() && sendmail($email, $vcode)) {
             if ($usertype == "Labour") {
-                $redirectUrl = "http://localhost/D_Labour_Chowk/Labour/postL.php";
-                echo "<script>alert('Successfully signed up as Labour. Please verify your email.'); window.location.href = '$redirectUrl';</script>";
+                $redirectUrl = "http://localhost/D_Labour_Chowk/Labour/dashboard.php";
+                echo "<script>alert('Successfully signed up as Labour! Please verify your email to access all features.'); window.location.href = '$redirectUrl';</script>";
             } else if ($usertype == "User") {
-                $redirectUrl = 'sign_up.html';
-                echo "<script>alert('Please check your email to login as a verified user.'); window.location.href = '$redirectUrl';</script>";
+                $redirectUrl = "http://localhost/D_Labour_Chowk/client_/dashboard.php";
+                echo "<script>alert('Successfully signed up! Please check your email to verify your account.'); window.location.href = '$redirectUrl';</script>";
             }
         } else {
-            $redirectUrl = "sign_up.html";
-            echo "<script>alert('Registration failed or duplicate entry. Please check your inputs.'); window.location.href = '$redirectUrl';</script>";
+            $error_msg = $stmt->error ? $stmt->error : 'Unknown database error';
+            error_log("Signup database error: " . $error_msg);
+            $redirectUrl = "signup_form.php";
+            echo "<script>alert('Registration failed. Please try again.'); window.location.href = '$redirectUrl';</script>";
         }
         $stmt->close();
     } catch (Exception $e) {
