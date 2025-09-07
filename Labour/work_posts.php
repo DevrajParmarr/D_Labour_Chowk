@@ -451,17 +451,70 @@ $result = $stmt->get_result();
         
         // Edit work function
         function editWork(workId) {
-            // This would typically open an edit modal or redirect to edit page
-            alert('Edit functionality will be implemented. Work ID: ' + workId);
+            // Show toast notification instead of alert
+            showToast('Edit functionality will be implemented soon. Work ID: ' + workId, 'info');
         }
-        
+
         // Delete work function
         function deleteWork(workId) {
-            if (confirm('Are you sure you want to delete this work post? This action cannot be undone.')) {
-                // Here you would typically make an AJAX call to delete the work
-                alert('Work post deleted successfully!');
-                location.reload();
+            // Show confirmation modal instead of confirm
+            const modalHtml = `
+                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">
+                                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Delete Work Post
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to delete this work post? This action cannot be undone.</p>
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    This will permanently remove the work post from your portfolio.
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="confirmDelete(${workId})">
+                                    <i class="fas fa-trash me-1"></i>Delete Post
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Remove existing modal if present
+            const existingModal = document.getElementById('deleteModal');
+            if (existingModal) {
+                existingModal.remove();
             }
+
+            // Add modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        function confirmDelete(workId) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+            modal.hide();
+
+            // Show loading state
+            showToast('Deleting work post...', 'info');
+
+            // Here you would typically make an AJAX call to delete the work
+            // For now, simulate deletion
+            setTimeout(() => {
+                showToast('Work post deleted successfully!', 'success');
+                location.reload();
+            }, 1000);
         }
         
         // Enhanced hover effects
@@ -481,6 +534,51 @@ $result = $stmt->get_result();
                 this.src = 'https://via.placeholder.com/400x250/28a745/ffffff?text=Work+Sample';
             });
         });
+
+        // Toast notification functions
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas ${getToastIcon(type)} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function getToastIcon(type) {
+            const icons = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+            return icons[type] || icons.info;
+        }
     </script>
 </body>
 </html>

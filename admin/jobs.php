@@ -77,9 +77,9 @@ $job_stats = $conn->query("
     SELECT
         COUNT(*) as total_jobs,
         COUNT(*) as active_jobs,
-        0 as pending_jobs,
-        0 as rejected_jobs
-    FROM job_post
+        COUNT(CASE WHEN jp.status = 'pending' THEN 1 END) as pending_jobs,
+        COUNT(CASE WHEN jp.status = 'rejected' THEN 1 END) as rejected_jobs
+    FROM job_post jp
 ")->fetch_assoc();
 
 $csrf_token = generateCSRFToken();
@@ -488,14 +488,9 @@ $csrf_token = generateCSRFToken();
                     </div>
 
                     <div class="action-buttons">
-                        <form method="POST" style="display: inline;">
-                            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-                            <input type="hidden" name="job_id" value="<?php echo $job['post_ID']; ?>">
-                            <button type="submit" name="action" value="delete" class="btn-action btn-delete"
-                                    onclick="return confirm('Are you sure you want to delete this job post?')" title="Delete Job">
-                                <i class="fas fa-trash me-1"></i>Delete
-                            </button>
-                        </form>
+                        <button class="btn-action btn-delete" onclick="deleteJob(<?php echo $job['post_ID']; ?>, '<?php echo htmlspecialchars($job['jobTitle']); ?>')" title="Delete Job">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </button>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -527,6 +522,35 @@ $csrf_token = generateCSRFToken();
         <?php endif; ?>
     </div>
 
+    <!-- Delete Job Modal -->
+    <div class="modal fade" id="deleteJobModal" tabindex="-1" aria-labelledby="deleteJobModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteJobModalLabel">
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>Delete Job Post
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the job post "<strong id="deleteJobTitle"></strong>"?</p>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This action cannot be undone. The job post will be permanently removed.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash me-1"></i>Delete Job
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Auto-hide alerts after 5 seconds
@@ -540,6 +564,58 @@ $csrf_token = generateCSRFToken();
                 }, 500);
             });
         }, 5000);
+
+        // Delete job function
+        function deleteJob(jobId, jobTitle) {
+            document.getElementById('deleteJobTitle').textContent = jobTitle;
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                    <input type="hidden" name="job_id" value="${jobId}">
+                    <input type="hidden" name="action" value="delete">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            };
+
+            const modal = new bootstrap.Modal(document.getElementById('deleteJobModal'));
+            modal.show();
+        }
+
+        // Search functionality
+        document.querySelector('input[placeholder="Search jobs..."]').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const jobCards = document.querySelectorAll('.job-card');
+
+            jobCards.forEach(card => {
+                const jobTitle = card.querySelector('.job-title').textContent.toLowerCase();
+                const jobDescription = card.querySelector('.job-description').textContent.toLowerCase();
+
+                if (jobTitle.includes(searchTerm) || jobDescription.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Filter functionality
+        document.querySelector('select').addEventListener('change', function() {
+            const filterValue = this.value.toLowerCase();
+            const jobCards = document.querySelectorAll('.job-card');
+
+            jobCards.forEach(card => {
+                const jobStatus = card.querySelector('.job-status').textContent.toLowerCase();
+
+                if (filterValue === '' || jobStatus.includes(filterValue)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
     </script>
 </body>
 </html>

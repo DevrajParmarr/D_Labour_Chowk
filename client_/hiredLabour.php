@@ -16,11 +16,27 @@ $client_id = getCurrentUserId();
 
 include "menu.html";
 
+// Handle session messages for rating feedback
+$toastMessage = '';
+$toastType = 'info';
+
+if (isset($_SESSION['rating_success'])) {
+    $toastMessage = $_SESSION['rating_success'];
+    $toastType = 'success';
+    unset($_SESSION['rating_success']);
+} elseif (isset($_SESSION['rating_error'])) {
+    $toastMessage = $_SESSION['rating_error'];
+    $toastType = 'error';
+    unset($_SESSION['rating_error']);
+}
+
 $query = "
-SELECT h.hire_id, u.user_name, u.email_id, u.mobile_no, lp.workType, lp.experience, lp.salary, lp.location, h.status, h.labour_id
+SELECT h.hire_id, u.user_name, u.email_id, u.mobile_no, lp.workType, lp.experience, lp.salary, lp.location, h.status, h.labour_id,
+       r.rating, r.review, r.created_at
 FROM hires h
 JOIN user u ON h.labour_id = u.user_ID
 JOIN lab_post lp ON h.labour_id = lp.user_ID
+LEFT JOIN ratings r ON r.hire_id = h.hire_id AND r.client_id = h.client_id
 WHERE h.client_id = ?";
 
 $stmt = $conn->prepare($query);
@@ -300,6 +316,35 @@ $result = $stmt->get_result();
             box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
             color: white;
         }
+
+        /* Rating Display */
+        .rating-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .rating-stars .fas.fa-star {
+            color: #fbbf24;
+            font-size: 1.2rem;
+        }
+
+        .rating-stars .far.fa-star {
+            color: #e5e7eb;
+            font-size: 1.2rem;
+        }
+
+        .rating-text {
+            color: #6b7280;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
         
         /* Rating Modal */
         .rating-modal .modal-content {
@@ -526,6 +571,18 @@ $result = $stmt->get_result();
                             </div>
                             
                             <div class='worker-actions'>
+                                " . (isset($row['rating']) ? "
+                                <div class='rating-display'>
+                                    <div class='rating-stars'>
+                                        " . str_repeat('<i class=\'fas fa-star\'></i>', $row['rating']) . "
+                                        " . str_repeat('<i class=\'far fa-star\'></i>', 5 - $row['rating']) . "
+                                    </div>
+                                    <small class='rating-text'>Rated {$row['rating']}/5</small>
+                                </div>
+                                <a href='tel:" . htmlspecialchars($row['mobile_no']) . "' class='btn-action btn-contact'>
+                                    <i class='fas fa-phone'></i>
+                                    Contact
+                                </a>" : "
                                 <button type='button' class='btn-action btn-rate' data-bs-toggle='modal' data-bs-target='#rateModal{$row['hire_id']}'>
                                     <i class='fas fa-star'></i>
                                     Rate Worker
@@ -533,7 +590,7 @@ $result = $stmt->get_result();
                                 <a href='tel:" . htmlspecialchars($row['mobile_no']) . "' class='btn-action btn-contact'>
                                     <i class='fas fa-phone'></i>
                                     Contact
-                                </a>
+                                </a>") . "
                             </div>
                         </div>
                         
@@ -673,10 +730,62 @@ $result = $stmt->get_result();
                 const ratingInput = this.querySelector('input[name="rating"]');
                 if (!ratingInput.value) {
                     e.preventDefault();
-                    alert('Please select a star rating before submitting.');
+                    showToast('Please select a star rating before submitting.', 'warning');
                 }
             });
         });
+
+        // Show session messages as toast notifications
+        <?php if (!empty($toastMessage)): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            showToast('<?php echo addslashes($toastMessage); ?>', '<?php echo $toastType; ?>');
+        });
+        <?php endif; ?>
+
+        // Toast notification functions
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas ${getToastIcon(type)} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function getToastIcon(type) {
+            const icons = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+            return icons[type] || icons.info;
+        }
     </script>
 </body>
 </html>

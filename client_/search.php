@@ -14,9 +14,11 @@ if (getCurrentUserType() !== 'User') {
 $db = Database::getInstance();
 $conn = $db->getConnection();
 
-// Retrieve search criteria from URL parameters
-$workType = $_GET['workType'];
-$city = $_GET['city'];
+include "menu.html";
+
+// Retrieve search criteria from URL parameters with defaults
+$workType = $_GET['workType'] ?? '';
+$city = $_GET['city'] ?? '';
 
 // Prepare SQL query with placeholders
 $sql = "SELECT * FROM lab_post WHERE workType LIKE ? AND city LIKE ?";
@@ -405,8 +407,8 @@ $result = $stmt->get_result();
                 
                 <div class="search-query">
                     <i class="fas fa-tools me-2"></i>
-                    <strong><?php echo htmlspecialchars($workType); ?></strong> in 
-                    <strong><?php echo htmlspecialchars($city); ?></strong>
+                    <strong><?php echo htmlspecialchars($workType ?: 'All Types'); ?></strong> in
+                    <strong><?php echo htmlspecialchars($city ?: 'All Cities'); ?></strong>
                 </div>
             </div>
         </div>
@@ -443,7 +445,7 @@ $result = $stmt->get_result();
                     $user = $user_result->fetch_assoc();
                     
                     // Generate avatar initials
-                    $initials = strtoupper(substr($user['user_name'], 0, 2));
+                    $initials = strtoupper(substr($user['user_name'] ?? 'U', 0, 2));
                     ?>
                     <div class="worker-card" data-salary="<?php echo htmlspecialchars($post['salary']); ?>" data-experience="<?php echo htmlspecialchars($post['experience']); ?>">
                         <div class="worker-header">
@@ -451,8 +453,8 @@ $result = $stmt->get_result();
                                 <?php echo $initials; ?>
                             </div>
                             <div class="worker-info">
-                                <h3><?php echo htmlspecialchars($user['user_name']); ?></h3>
-                                <div class="worker-type"><?php echo htmlspecialchars($post['workType']); ?></div>
+                                <h3><?php echo htmlspecialchars($user['user_name'] ?? 'Unknown User'); ?></h3>
+                                <div class="worker-type"><?php echo htmlspecialchars($post['workType'] ?? 'General Worker'); ?></div>
                             </div>
                         </div>
                         
@@ -460,19 +462,19 @@ $result = $stmt->get_result();
                             <div class="detail-item">
                                 <i class="fas fa-rupee-sign detail-icon"></i>
                                 <span class="detail-label">Salary:</span>
-                                <span class="detail-value salary-highlight">₹<?php echo number_format(htmlspecialchars($post['salary'])); ?>/month</span>
+                                <span class="detail-value salary-highlight">₹<?php echo number_format($post['salary'] ?? 0); ?>/month</span>
                             </div>
-                            
+
                             <div class="detail-item">
                                 <i class="fas fa-star detail-icon"></i>
                                 <span class="detail-label">Experience:</span>
-                                <span class="detail-value"><?php echo htmlspecialchars($post['experience']); ?> years</span>
+                                <span class="detail-value"><?php echo htmlspecialchars($post['experience'] ?? '0'); ?> years</span>
                             </div>
-                            
+
                             <div class="detail-item">
                                 <i class="fas fa-map-marker-alt detail-icon"></i>
                                 <span class="detail-label">Location:</span>
-                                <span class="detail-value"><?php echo htmlspecialchars($post['location']); ?>, <?php echo htmlspecialchars($post['city']); ?></span>
+                                <span class="detail-value"><?php echo htmlspecialchars($post['location'] ?? 'Not specified'); ?>, <?php echo htmlspecialchars($post['city'] ?? 'Not specified'); ?></span>
                             </div>
                             
                             <div class="detail-item">
@@ -483,7 +485,7 @@ $result = $stmt->get_result();
                         </div>
                         
                         <div class="worker-actions">
-                            <a href="profile.php?user_id=<?php echo htmlspecialchars($post['user_id']); ?>" class="btn-view">
+                            <a href="get_profile.php?user_id=<?php echo htmlspecialchars($post['user_id']); ?>" class="btn-view">
                                 <i class="fas fa-user me-2"></i>View Profile
                             </a>
                             <button class="btn-contact" onclick="contactWorker(<?php echo htmlspecialchars($post['user_id']); ?>)">
@@ -504,7 +506,7 @@ $result = $stmt->get_result();
                     Try adjusting your search terms or location.
                 </p>
                 <div class="navigation-buttons">
-                    <a href="home.php" class="btn-nav primary">
+                    <a href="dashboard.php" class="btn-nav primary">
                         <i class="fas fa-search me-2"></i>Try New Search
                     </a>
                 </div>
@@ -515,8 +517,8 @@ $result = $stmt->get_result();
             <a href="availableLabour.php" class="btn-nav">
                 <i class="fas fa-arrow-left me-2"></i>Back to Browse
             </a>
-            <a href="../Shared/index.html" class="btn-nav">
-                <i class="fas fa-home me-2"></i>Back to Home
+            <a href="dashboard.php" class="btn-nav">
+                <i class="fas fa-home me-2"></i>Back to Dashboard
             </a>
             <a href="advanced_search.php" class="btn-nav primary">
                 <i class="fas fa-search-plus me-2"></i>Advanced Search
@@ -557,8 +559,8 @@ $result = $stmt->get_result();
         
         // Contact worker functionality
         function contactWorker(userId) {
-            // This would typically open a contact modal or redirect to messaging
-            alert('Contact feature will be implemented. Worker ID: ' + userId);
+            // Show toast notification instead of alert
+            showToast('Contact feature will be implemented soon. Worker ID: ' + userId, 'info');
         }
         
         // Add hover effects to cards
@@ -610,6 +612,51 @@ $result = $stmt->get_result();
                 card.style.animation = 'fadeInUp 0.6s ease forwards';
             });
         });
+
+        // Toast notification functions
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas ${getToastIcon(type)} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function getToastIcon(type) {
+            const icons = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+            return icons[type] || icons.info;
+        }
     </script>
 </body>
 </html>

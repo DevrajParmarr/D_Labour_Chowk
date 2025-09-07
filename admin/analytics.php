@@ -33,8 +33,8 @@ $analytics['jobs'] = $conn->query("
     SELECT
         COUNT(*) as total_jobs,
         COUNT(*) as active_jobs,
-        0 as pending_jobs,
-        0 as new_jobs_30d,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_jobs,
+        COUNT(CASE WHEN createdDate >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_jobs_30d,
         AVG(salary) as avg_salary,
         MAX(salary) as max_salary,
         MIN(salary) as min_salary
@@ -96,7 +96,8 @@ $analytics['performance'] = [
     'hire_rate' => round($analytics['hires']['new_hires_30d'] / 30, 2),
     'acceptance_rate' => $analytics['applications']['total_applications'] > 0 ?
         round(($analytics['applications']['accepted_applications'] / $analytics['applications']['total_applications']) * 100, 2) : 0,
-    'verification_rate' => 100 // All users are considered verified for now
+    'verification_rate' => $analytics['users']['total_users'] > 0 ?
+        round(($analytics['users']['verified_users'] / $analytics['users']['total_users']) * 100, 2) : 0
 ];
 
 ?>

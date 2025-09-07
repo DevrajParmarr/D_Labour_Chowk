@@ -660,38 +660,87 @@ include "menu.html";
         });
 
         function applyForJob(post_ID) {
-            if (confirm('Are you sure you want to apply for this job?')) {
-                // Show loading state
-                const button = event.target;
-                const originalText = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Applying...';
-                button.disabled = true;
+            // Show confirmation modal instead of alert
+            const modalHtml = `
+                <div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="applyModalLabel">
+                                    <i class="fas fa-paper-plane text-primary me-2"></i>Apply for Job
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to apply for this job? Your application will be sent to the employer.</p>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Make sure your profile is complete and up-to-date for better chances of getting hired.
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="confirmApply(${post_ID})">
+                                    <i class="fas fa-paper-plane me-1"></i>Apply Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
 
-                fetch('apply_job.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `post_ID=${post_ID}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    if (data.success) {
-                        button.innerHTML = '<i class="fas fa-check me-2"></i>Applied';
-                        button.style.background = 'var(--success-color)';
-                    } else {
-                        button.innerHTML = originalText;
-                        button.disabled = false;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
+            // Remove existing modal if present
+            const existingModal = document.getElementById('applyModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Add modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('applyModal'));
+            modal.show();
+        }
+
+        function confirmApply(post_ID) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('applyModal'));
+            modal.hide();
+
+            // Find the button that triggered the application
+            const button = event.target.closest('.apply-btn');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Applying...';
+            button.disabled = true;
+
+            fetch('apply_job.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `post_ID=${post_ID}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message, 'success');
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Applied';
+                    button.style.background = 'var(--success-color)';
+                    button.disabled = true;
+                } else {
+                    showToast(data.message, data.status === 'info' ? 'warning' : 'error');
                     button.innerHTML = originalText;
                     button.disabled = false;
-                });
-            }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred. Please try again.', 'error');
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
         }
 
         // Add hover effects to cards
@@ -735,6 +784,51 @@ include "menu.html";
                 card.classList.add('fade-in-up');
             });
         });
+
+        // Toast notification functions
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas ${getToastIcon(type)} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function getToastIcon(type) {
+            const icons = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+            return icons[type] || icons.info;
+        }
     </script>
 
 </body>

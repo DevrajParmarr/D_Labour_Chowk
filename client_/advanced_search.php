@@ -119,18 +119,71 @@ try {
     }
 
     // Get total count for pagination
-    $count_query = str_replace(
-        "SELECT lp.*, u.user_name, u.mobile_no, u.email_id, u.date_created, AVG(r.rating) as avg_rating, COUNT(r.id) as review_count",
-        "SELECT COUNT(DISTINCT lp.l_post_ID) as total",
-        $query
-    );
+    $count_query = "
+        SELECT COUNT(DISTINCT lp.l_post_ID) as total
+        FROM lab_post lp
+        JOIN user u ON lp.user_ID = u.user_ID
+        LEFT JOIN ratings r ON r.labour_id = lp.user_ID
+        WHERE u.Verified = 1
+    ";
+
+    $params_count = [];
+    $types_count = '';
+
+    // Add search filter
+    if (!empty($search)) {
+        $count_query .= " AND (lp.workType LIKE ? OR u.user_name LIKE ? OR lp.city LIKE ? OR lp.location LIKE ?)";
+        $search_param = "%$search%";
+        $params_count = array_merge($params_count, [$search_param, $search_param, $search_param, $search_param]);
+        $types_count .= 'ssss';
+    }
+
+    // Add work type filters
+    if (!empty($work_types)) {
+        $placeholders = str_repeat('?,', count($work_types) - 1) . '?';
+        $count_query .= " AND lp.workType IN ($placeholders)";
+        $params_count = array_merge($params_count, $work_types);
+        $types_count .= str_repeat('s', count($work_types));
+    }
+
+    // Add city filter
+    if (!empty($city)) {
+        $count_query .= " AND lp.city = ?";
+        $params_count[] = $city;
+        $types_count .= 's';
+    }
+
+    // Add salary filters
+    if (!empty($min_salary)) {
+        $count_query .= " AND lp.salary >= ?";
+        $params_count[] = $min_salary;
+        $types_count .= 'i';
+    }
+    if (!empty($max_salary)) {
+        $count_query .= " AND lp.salary <= ?";
+        $params_count[] = $max_salary;
+        $types_count .= 'i';
+    }
+
+    // Add experience filters
+    if (!empty($min_experience)) {
+        $count_query .= " AND CAST(lp.experience AS UNSIGNED) >= ?";
+        $params_count[] = $min_experience;
+        $types_count .= 'i';
+    }
+    if (!empty($max_experience)) {
+        $count_query .= " AND CAST(lp.experience AS UNSIGNED) <= ?";
+        $params_count[] = $max_experience;
+        $types_count .= 'i';
+    }
 
     $count_stmt = $db->prepare($count_query);
-    if (!empty($params)) {
-        $count_stmt->bind_param($types, ...$params);
+    if (!empty($params_count)) {
+        $count_stmt->bind_param($types_count, ...$params_count);
     }
     $count_stmt->execute();
-    $total_results = $count_stmt->get_result()->fetch_assoc()['total'];
+    $count_result = $count_stmt->get_result()->fetch_assoc();
+    $total_results = $count_result ? ($count_result['total'] ?? 0) : 0;
     $total_pages = ceil($total_results / $per_page);
 
     // Add pagination to main query
@@ -954,8 +1007,8 @@ try {
 
         // Contact worker function
         function contactWorker(userId) {
-            // This would typically open a contact modal or redirect to messaging
-            alert('Contact feature will be implemented. Worker ID: ' + userId);
+            // Show toast notification instead of alert
+            showToast('Contact feature will be implemented soon. Worker ID: ' + userId, 'info');
         }
 
         // Add loading states to buttons
@@ -998,6 +1051,51 @@ try {
                 card.style.animationDelay = `${index * 0.1}s`;
             });
         });
+
+        // Toast notification functions
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas ${getToastIcon(type)} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function getToastIcon(type) {
+            const icons = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+            return icons[type] || icons.info;
+        }
     </script>
 </body>
 </html>

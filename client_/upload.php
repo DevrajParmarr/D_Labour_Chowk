@@ -1,37 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post pop up</title>
-    <link rel="stylesheet" href="creatjob.css">
-    <script> 
-    function openPopup(){
-     let Timeout;
-     let popup = document.getElementById("popup");
-     popup.classList.add("openPopup");
-     Timeout = setTimeout(closePopup, 2000);
-    }
-function closePopup(){
-    popup.classList.remove("openPopup");
-}
-    </script>
-</head>
-<body>
-<div class="popup" id="popup">
-       <img src="tick.webp" alt="GreenTick">
-       <pre>Job Created</pre> 
-</div>
-</body>
-</html>
-
 <?php
-
 session_start();
 
 // Check if user is logged in and is a client
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
-    header("Location: ../Shared/login.php");
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'User') {
+    header("Location: ../Shared/login_form.php");
     exit();
 }
 
@@ -89,34 +61,57 @@ if ($stmt = mysqli_prepare($conn, $query)) {
 
     if (mysqli_stmt_execute($stmt)) {
         $redirectUrl = "http://localhost/D_Labour_Chowk/client_/view.php";
-//     echo "<script type = 'text/javascript'>openPopup();</script>";
-//     echo "<script>
-//     setTimeout(function() {
-//         window.location.href = '$redirectUrl';
-//     }, 3000); 
-//   </script>";
+        echo "<script>alert('Post created successfully! Click OK to view your posts.');
+        setTimeout(function() {
+            window.location.href = '$redirectUrl';
+        }, 1000);</script>";
+    } else {
+        echo "<script>alert('Error creating post: " . mysqli_error($conn) . "'); window.location.href='creatjob.php';</script>";
+    }
 
-     echo "<script>alert('post created to view post click OK');
-
-     setTimeout(function() {
-        window.location.href = '$redirectUrl';
-     }, 0000)</script>";
-
-
-    //   echo "<h1>Successful Insertion</h1>";
-    //   header('location:view.php');
+    mysqli_stmt_close($stmt);
 } else {
-    
-    echo "Error: " . $query . "<br>" . mysqli_error($conn);
+    echo "<script>alert('Database error: " . mysqli_error($conn) . "'); window.location.href='creatjob.php';</script>";
 }
 
 mysqli_close($conn);
 ?>
 
-
-<!-- mysqli_query($conn,$query ); -->
-
-
-<!-- <form action="view.php" method="get">
-    <button type="submit">View Product</button>
-</form> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Post Created</title>
+    <link rel="stylesheet" href="creatjob.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f4f4f4;
+        }
+        .success-message {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .tick-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-message">
+        <img src="tick.webp" alt="Success" class="tick-icon">
+        <h2>Job Post Created Successfully!</h2>
+        <p>Your job post has been created and published.</p>
+        <p>You will be redirected to view your posts shortly...</p>
+    </div>
+</body>
+</html>

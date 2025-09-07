@@ -43,6 +43,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 break;
+
+            case 'verify':
+                $stmt = $conn->prepare("UPDATE user SET Verified = 1 WHERE user_ID = ?");
+                $stmt->bind_param("i", $user_id);
+                if ($stmt->execute()) {
+                    $success = "User verified successfully";
+                } else {
+                    $error = "Failed to verify user";
+                }
+                break;
+
+            case 'unverify':
+                $stmt = $conn->prepare("UPDATE user SET Verified = 0 WHERE user_ID = ?");
+                $stmt->bind_param("i", $user_id);
+                if ($stmt->execute()) {
+                    $success = "User unverified successfully";
+                } else {
+                    $error = "Failed to unverify user";
+                }
+                break;
         }
     }
 }
@@ -76,8 +96,8 @@ $user_stats = $conn->query("
         COUNT(CASE WHEN user_type = 'User' THEN 1 END) as clients,
         COUNT(CASE WHEN user_type = 'Labour' THEN 1 END) as workers,
         COUNT(CASE WHEN user_type = 'Admin' THEN 1 END) as admins,
-        COUNT(*) as verified,
-        0 as unverified
+        COUNT(CASE WHEN Verified = 1 THEN 1 END) as verified,
+        COUNT(CASE WHEN Verified = 0 THEN 1 END) as unverified
     FROM user
 ")->fetch_assoc();
 
@@ -446,8 +466,9 @@ $csrf_token = generateCSRFToken();
                     <div class="user-info">
                         <div class="user-name">
                             <?php echo htmlspecialchars($user['user_name']); ?>
-                            <span class="verification-badge verified">
-                                <i class="fas fa-check-circle"></i> Verified
+                            <span class="verification-badge <?php echo $user['Verified'] ? 'verified' : 'unverified'; ?>">
+                                <i class="fas fa-<?php echo $user['Verified'] ? 'check-circle' : 'exclamation-circle'; ?>"></i>
+                                <?php echo $user['Verified'] ? 'Verified' : 'Unverified'; ?>
                             </span>
                         </div>
                         <div class="user-email"><?php echo htmlspecialchars($user['email_id']); ?></div>
@@ -467,14 +488,27 @@ $csrf_token = generateCSRFToken();
                         <?php echo htmlspecialchars($user['user_type']); ?>
                     </div>
                     <div class="action-buttons">
-                        <form method="POST" style="display: inline;">
-                            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-                            <input type="hidden" name="user_id" value="<?php echo $user['user_ID']; ?>">
-                            <button type="submit" name="action" value="delete" class="btn-action btn-delete"
-                                    onclick="return confirm('Are you sure you want to delete this user?')" title="Delete User">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
+                        <?php if (!$user['Verified']): ?>
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                                <input type="hidden" name="user_id" value="<?php echo $user['user_ID']; ?>">
+                                <button type="submit" name="action" value="verify" class="btn-action btn-verify" title="Verify User">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                        <?php else: ?>
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                                <input type="hidden" name="user_id" value="<?php echo $user['user_ID']; ?>">
+                                <button type="submit" name="action" value="unverify" class="btn-action btn-unverify" title="Unverify User">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        <?php endif; ?>
+
+                        <button class="btn-action btn-delete" onclick="deleteUser(<?php echo $user['user_ID']; ?>, '<?php echo htmlspecialchars($user['user_name']); ?>')" title="Delete User">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -506,6 +540,35 @@ $csrf_token = generateCSRFToken();
         <?php endif; ?>
     </div>
 
+    <!-- Delete User Modal -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteUserModalLabel">
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>Delete User
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete user "<strong id="deleteUserName"></strong>"?</p>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This action cannot be undone. All user data will be permanently removed.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash me-1"></i>Delete User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Auto-hide alerts after 5 seconds
@@ -519,6 +582,58 @@ $csrf_token = generateCSRFToken();
                 }, 500);
             });
         }, 5000);
+
+        // Delete user function
+        function deleteUser(userId, userName) {
+            document.getElementById('deleteUserName').textContent = userName;
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                    <input type="hidden" name="user_id" value="${userId}">
+                    <input type="hidden" name="action" value="delete">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            };
+
+            const modal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+            modal.show();
+        }
+
+        // Search functionality
+        document.querySelector('input[placeholder="Search users..."]').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const userRows = document.querySelectorAll('.user-row');
+
+            userRows.forEach(row => {
+                const userName = row.querySelector('.user-name').textContent.toLowerCase();
+                const userEmail = row.querySelector('.user-email').textContent.toLowerCase();
+
+                if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
+                    row.style.display = 'flex';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Filter functionality
+        document.querySelector('select').addEventListener('change', function() {
+            const filterValue = this.value.toLowerCase();
+            const userRows = document.querySelectorAll('.user-row');
+
+            userRows.forEach(row => {
+                const userType = row.querySelector('.user-type').textContent.toLowerCase();
+
+                if (filterValue === '' || userType.includes(filterValue)) {
+                    row.style.display = 'flex';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
     </script>
 </body>
 </html>

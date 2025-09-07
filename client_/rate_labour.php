@@ -2,8 +2,8 @@
 session_start();
 include "../Shared/sqlconnection.php";
 
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
-    header("Location: ../Shared/login.php");
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'User') {
+    header("Location: ../Shared/login_form.php");
     exit();
 }
 
@@ -17,13 +17,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
    // Validate inputs
    if (!$hire_id || !$labour_id || !$client_id || !$rating || $rating < 1 || $rating > 5) {
-       echo "<script>alert('Invalid input data'); window.history.back();</script>";
+       $_SESSION['rating_error'] = 'Invalid input data. Please check your rating and try again.';
+       header("Location: hiredLabour.php");
        exit();
    }
 
    // Verify the client_id matches the logged-in user
    if ($client_id !== $_SESSION['user_id']) {
-       echo "<script>alert('Unauthorized access'); window.location.href='../Shared/login.php';</script>";
+       $_SESSION['rating_error'] = 'Unauthorized access. Please login and try again.';
+       header("Location: ../Shared/login_form.php");
        exit();
    }
 
@@ -34,17 +36,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $checkResult = $checkStmt->get_result();
 
     if ($checkResult->num_rows > 0) {
-        echo "<script>alert('You have already rated this laborer.'); window.location.href='hiredlabour.php';</script>";
+        $_SESSION['rating_error'] = 'You have already rated this labourer.';
+        header("Location: hiredLabour.php");
+        exit();
     } else {
-    
+
       $query = "INSERT INTO ratings (hire_id, labour_id, client_id, rating, review) VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("iiiss", $hire_id, $labour_id, $client_id, $rating, $review);
 
         if ($stmt->execute()) {
-            echo "<script>alert('Thank you for Rating!'); window.location.href='hiredlabour.php';</script>";
+            $_SESSION['rating_success'] = 'Thank you for your rating! Your feedback helps improve our platform.';
+            header("Location: hiredLabour.php");
+            exit();
         } else {
-            echo "<script>alert('Error: {$stmt->error}'); window.history.back();</script>";
+            $_SESSION['rating_error'] = 'Error submitting rating. Please try again.';
+            header("Location: hiredLabour.php");
+            exit();
         }
 
         $stmt->close();

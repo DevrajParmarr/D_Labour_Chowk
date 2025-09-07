@@ -24,16 +24,15 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
     <title>My Job Posts - D Labour Chowk</title>
     <meta name="description" content="View and manage all your job posts. Track applications, edit details, and monitor responses.">
-    
+
     <!-- Enhanced CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    
+
     <style>
         :root {
             --primary-color: #2563eb;
@@ -46,66 +45,19 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-=======
-    <title>My Job Posts</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- <link rel="stylesheet" href="creatjob.css"> -->
-    <style>
-        body{
-    background-color: rgba(100, 148, 237, 0.523);
-}
-.popup img{
-    width: 40px;
-    height: 40px;
-    padding: 8px;
-}
-.popup{
 
-    display: flex;
-    text-align: center;
-    border: 2px solid rgb(65, 202, 37);
-    background-color: rgba(64, 202, 37, 0.22);
-    width: 220px;
-    height: 40px;
-    border-radius: 250px;
-    position: absolute;
-    top: 0;
-    left: 50%;
-    padding: 0 30px,30px;
-    transform: translate(-50%, -50% ) scale(0.1);
-    transition: transform 0.4s , top 0.4s;
-    visibility: hidden;
-    
-}
-.popup pre{
-    padding-left: 2rem;   
-    text-align: center;
-    position: absolute;
-    top: 8px;
-    left: 50px;   
-}
-.openPopup{
-    visibility: visible;
-    top: 90px;
-    transform: translate(-50%,-50%) scale(1);
-}
->>>>>>> 39578cd55d61ac8c691bf23cfd350dd7248f990a
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #1f2937;
+            font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             min-height: 100vh;
         }
-        
+
         /* Header Section */
         .header-section {
             background: var(--gradient-primary);
@@ -115,7 +67,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             position: relative;
             overflow: hidden;
         }
-        
+
         .header-section::before {
             content: '';
             position: absolute;
@@ -126,7 +78,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             background: rgba(0, 0, 0, 0.1);
             z-index: 1;
         }
-        
+
         .header-content {
             text-align: center;
             max-width: 1200px;
@@ -135,13 +87,13 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             position: relative;
             z-index: 2;
         }
-        
+
         .welcome-text {
             font-size: 1.2rem;
             opacity: 0.9;
             margin-bottom: 1rem;
         }
-        
+
         .main-title {
             font-family: 'Poppins', sans-serif;
             font-size: clamp(2rem, 4vw, 3.5rem);
@@ -149,14 +101,14 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             margin-bottom: 1rem;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
-        
+
         .main-subtitle {
             font-size: clamp(1rem, 2vw, 1.3rem);
             opacity: 0.9;
             max-width: 600px;
             margin: 0 auto 2rem;
         }
-        
+
         .header-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -164,7 +116,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             max-width: 800px;
             margin: 0 auto;
         }
-        
+
         .stat-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -173,27 +125,27 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .stat-number {
             font-size: 2.5rem;
             font-weight: 800;
             margin-bottom: 0.5rem;
         }
-        
+
         .stat-label {
             opacity: 0.9;
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         /* Main Container */
         .main-container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 0 2rem;
         }
-        
+
         /* Filters and Actions */
         .toolbar {
             background: white;
@@ -207,13 +159,13 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             flex-wrap: wrap;
             gap: 1rem;
         }
-        
+
         .filter-section {
             display: flex;
             gap: 1rem;
             align-items: center;
         }
-        
+
         .filter-select {
             padding: 0.75rem 1rem;
             border: 2px solid #e5e7eb;
@@ -222,13 +174,13 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             min-width: 150px;
             transition: all 0.3s ease;
         }
-        
+
         .filter-select:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
-        
+
         .btn-create {
             background: var(--gradient-accent);
             color: white;
@@ -239,20 +191,20 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             text-decoration: none;
             transition: all 0.3s ease;
         }
-        
+
         .btn-create:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4);
             color: white;
         }
-        
+
         /* Job Cards Grid */
         .jobs-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
             gap: 2rem;
         }
-        
+
         .job-card {
             background: white;
             border-radius: 24px;
@@ -262,12 +214,12 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             position: relative;
             border: 1px solid #f1f5f9;
         }
-        
+
         .job-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15);
         }
-        
+
         .job-card::before {
             content: '';
             position: absolute;
@@ -277,22 +229,22 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             height: 4px;
             background: var(--gradient-accent);
         }
-        
+
         .job-image {
             width: 100%;
             height: 200px;
             object-fit: cover;
             transition: transform 0.4s ease;
         }
-        
+
         .job-card:hover .job-image {
             transform: scale(1.05);
         }
-        
+
         .job-content {
             padding: 2rem;
         }
-        
+
         .job-title {
             font-family: 'Poppins', sans-serif;
             font-size: 1.3rem;
@@ -301,7 +253,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             margin-bottom: 1rem;
             line-height: 1.3;
         }
-        
+
         .job-location {
             display: inline-flex;
             align-items: center;
@@ -313,14 +265,14 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             font-weight: 600;
             margin-bottom: 1rem;
         }
-        
+
         .job-salary {
             font-size: 1.5rem;
             font-weight: 800;
             color: var(--danger-color);
             margin-bottom: 1rem;
         }
-        
+
         .job-description {
             color: #6b7280;
             font-size: 0.95rem;
@@ -331,7 +283,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        
+
         .job-meta {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -340,7 +292,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             padding-top: 1rem;
             border-top: 1px solid #f1f5f9;
         }
-        
+
         .meta-item {
             display: flex;
             align-items: center;
@@ -348,17 +300,17 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             font-size: 0.85rem;
             color: #6b7280;
         }
-        
+
         .meta-icon {
             color: var(--primary-color);
             font-size: 1rem;
         }
-        
+
         .job-actions {
             display: flex;
             gap: 1rem;
         }
-        
+
         .btn-action {
             flex: 1;
             padding: 0.75rem 1rem;
@@ -375,29 +327,29 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             justify-content: center;
             gap: 0.5rem;
         }
-        
+
         .btn-responses {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white;
         }
-        
+
         .btn-responses:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
             color: white;
         }
-        
+
         .btn-delete {
             background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
         }
-        
+
         .btn-delete:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
             color: white;
         }
-        
+
         /* Status Badge */
         .status-badge {
             position: absolute;
@@ -411,27 +363,27 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             font-weight: 600;
             border: 1px solid rgba(16, 185, 129, 0.2);
         }
-        
+
         /* Empty State */
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
             color: #6b7280;
         }
-        
+
         .empty-icon {
             font-size: 4rem;
             margin-bottom: 2rem;
             opacity: 0.5;
         }
-        
+
         .empty-title {
             font-size: 1.5rem;
             font-weight: 600;
             margin-bottom: 1rem;
             color: #374151;
         }
-        
+
         .empty-description {
             font-size: 1rem;
             margin-bottom: 2rem;
@@ -439,33 +391,33 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             margin-left: auto;
             margin-right: auto;
         }
-        
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .jobs-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .toolbar {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .filter-section {
                 justify-content: center;
                 flex-wrap: wrap;
             }
-            
+
             .job-actions {
                 flex-direction: column;
             }
-            
+
             .header-stats {
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
         }
-        
+
         /* Animations */
         @keyframes slideInUp {
             from {
@@ -477,17 +429,17 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                 transform: translateY(0);
             }
         }
-        
+
         .slide-in-up {
             animation: slideInUp 0.6s ease forwards;
         }
-        
+
         /* Loading State */
         .loading {
             display: inline-block;
             animation: spin 1s linear infinite;
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -495,7 +447,6 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
     </style>
 </head>
 <body>
-<<<<<<< HEAD
     <!-- Header Section -->
     <div class="header-section">
         <div class="header-content">
@@ -509,7 +460,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                 Manage your job posts, track applications, and connect with skilled workers.
                 Monitor the progress of your projects from start to finish.
             </p>
-            
+
             <!-- Header Stats -->
             <div class="header-stats" data-aos="fade-up" data-aos-delay="600">
                 <div class="stat-card">
@@ -527,7 +478,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             </div>
         </div>
     </div>
-    
+
     <!-- Main Container -->
     <div class="main-container">
         <!-- Toolbar -->
@@ -539,7 +490,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                     <option value="salary-high">Highest Salary</option>
                     <option value="salary-low">Lowest Salary</option>
                 </select>
-                
+
                 <select class="filter-select" id="locationFilter">
                     <option value="all">All Locations</option>
                     <option value="Indore">Indore</option>
@@ -548,12 +499,12 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                     <option value="Delhi">Delhi</option>
                 </select>
             </div>
-            
+
             <a href="creatjob.php" class="btn-create">
                 <i class="fas fa-plus me-2"></i>Create New Job
             </a>
         </div>
-        
+
         <!-- Jobs Grid -->
         <div class="jobs-grid" id="jobsGrid">
             <?php
@@ -563,29 +514,29 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                 $imageUrl = !empty($dbrow['impath']) ? htmlspecialchars($dbrow['impath']) : 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400';
                 $description = htmlspecialchars($dbrow['detail']);
                 $shortDescription = strlen($description) > 150 ? substr($description, 0, 150) . '...' : $description;
-                
+
                 echo "
                 <div class='job-card' data-aos='fade-up' data-aos-delay='" . ($jobCount * 100) . "'>
                     <div class='status-badge'>
                         <i class='fas fa-circle me-1'></i>Active
                     </div>
-                    
+
                     <img src='{$imageUrl}' alt='Job Image' class='job-image'>
-                    
+
                     <div class='job-content'>
                         <h3 class='job-title'>" . htmlspecialchars($dbrow['jobTitle']) . "</h3>
-                        
+
                         <div class='job-location'>
                             <i class='fas fa-map-marker-alt me-2'></i>
                             " . htmlspecialchars($dbrow['location']) . "
                         </div>
-                        
+
                         <div class='job-salary'>
                             <i class='fas fa-rupee-sign me-1'></i>" . number_format($dbrow['salary']) . "
                         </div>
-                        
+
                         <p class='job-description'>{$shortDescription}</p>
-                        
+
                         <div class='job-meta'>
                             <div class='meta-item'>
                                 <i class='fas fa-calendar-alt meta-icon'></i>
@@ -596,7 +547,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                                 <span>View Details</span>
                             </div>
                         </div>
-                        
+
                         <div class='job-actions'>
                             <a href='interested_labour.php?post_ID=" . $dbrow['post_ID'] . "' class='btn-action btn-responses'>
                                 <i class='fas fa-users'></i>
@@ -610,7 +561,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                     </div>
                 </div>";
             }
-            
+
             if ($jobCount == 0) {
                 echo "
                 <div class='empty-state' data-aos='fade-up'>
@@ -619,7 +570,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                     </div>
                     <h3 class='empty-title'>No Job Posts Yet</h3>
                     <p class='empty-description'>
-                        You haven't created any job posts yet. Start by posting your first job 
+                        You haven't created any job posts yet. Start by posting your first job
                         to connect with skilled workers in your area.
                     </p>
                     <a href='creatjob.php' class='btn-create' style='display: inline-flex; align-items: center;'>
@@ -630,7 +581,7 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             ?>
         </div>
     </div>
-    
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -641,27 +592,27 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
             easing: 'ease-in-out',
             once: true
         });
-        
+
         // Update stats
         document.addEventListener('DOMContentLoaded', function() {
             const jobCards = document.querySelectorAll('.job-card');
             const totalJobs = jobCards.length;
-            
+
             document.getElementById('totalJobs').textContent = totalJobs;
             document.getElementById('activeJobs').textContent = totalJobs;
             document.getElementById('totalApplications').textContent = Math.floor(totalJobs * 2.5); // Mock data
-            
+
             // Animate counters
             animateCounters();
         });
-        
+
         function animateCounters() {
             const counters = document.querySelectorAll('.stat-number');
             counters.forEach(counter => {
                 const target = parseInt(counter.textContent);
                 let count = 0;
                 const increment = target / 30;
-                
+
                 const timer = setInterval(() => {
                     count += increment;
                     if (count >= target) {
@@ -673,18 +624,18 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                 }, 50);
             });
         }
-        
+
         // Confirm delete
         function confirmDelete() {
             return confirm('Are you sure you want to delete this job post? This action cannot be undone.');
         }
-        
+
         // Filter functionality
         document.getElementById('sortFilter').addEventListener('change', function() {
             const sortType = this.value;
             const jobsGrid = document.getElementById('jobsGrid');
             const jobCards = Array.from(jobsGrid.querySelectorAll('.job-card'));
-            
+
             jobCards.sort((a, b) => {
                 switch(sortType) {
                     case 'salary-high':
@@ -699,15 +650,15 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                         return 0;
                 }
             });
-            
+
             jobCards.forEach(card => jobsGrid.appendChild(card));
         });
-        
+
         // Location filter
         document.getElementById('locationFilter').addEventListener('change', function() {
             const selectedLocation = this.value;
             const jobCards = document.querySelectorAll('.job-card');
-            
+
             jobCards.forEach(card => {
                 const location = card.querySelector('.job-location').textContent.trim();
                 if (selectedLocation === 'all' || location.includes(selectedLocation)) {
@@ -717,67 +668,17 @@ $sql_result = mysqli_query($conn, "SELECT * FROM job_post WHERE owner = $user_id
                 }
             });
         });
-        
+
         // Add hover effects
         document.querySelectorAll('.job-card').forEach(card => {
             card.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-8px) scale(1.02)';
             });
-            
+
             card.addEventListener('mouseleave', function() {
                 this.style.transform = 'translateY(0) scale(1)';
             });
         });
     </script>
-=======
-
-<div class="container">
-    <h2>My Job Posts</h2>
-    <div class="row justify-content-center">
-        <?php
-        while ($dbrow = mysqli_fetch_assoc($sql_result)) {
-            echo "
-            <div class='col-lg-4 col-md-6 col-sm-12'>
-                <div class='pdt-container'>
-                    <h4>Job Title: <span class='name'>" . htmlspecialchars($dbrow['jobTitle']) . "</span></h4>
-                    <div class='location'>" . htmlspecialchars($dbrow['location']) . "</div>
-                    <h5 class='salary'>Salary: " . htmlspecialchars($dbrow['salary']) . " Rs</h5>
-                    <img src='" . htmlspecialchars($dbrow['impath']) . "' alt='Job Image'>
-                    <p class='detail'>Detail: <span>" . htmlspecialchars($dbrow['detail']) . "</span></p>
-                    <div class='btn-container'>
-                        <a href='dltpost.php?post_ID=" . $dbrow['post_ID'] . "'>
-                            <button class='btn btn-danger' onclick='openPopup()'>Delete Post</button>
-                        </a>
-                        <a href='interested_labour.php?post_ID=" . $dbrow['post_ID'] . "'>
-                            <button class='btn btn-warning'>View Responses</button>
-                        </a>
-                    </div>
-                </div>
-            </div>
-";
-        }
-        ?>
-    <div class='popup' id='popup'>
-       <img src='tick.webp' alt='GreenTick'>
-       <pre>Post Deleted</pre> 
-    </div>
-    </div>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script> 
-    function openPopup(){
-     let Timeout;
-     let popup = document.getElementById("popup");
-     popup.classList.add("openPopup");
-     Timeout = setTimeout(closePopup, 3000);
-    }
-function closePopup(){
-    popup.classList.remove("openPopup");
-}
-</script>
->>>>>>> 39578cd55d61ac8c691bf23cfd350dd7248f990a
 </body>
 </html>

@@ -59,8 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
-    // If the status is 'hired', insert into the 'hires' table
-    if ($status === 'hired') {
+    // If the status is 'Hired', insert into the 'hires' table
+    if (strtolower($status) === 'hired') {
         $insert_hire_query = "INSERT INTO hires (labour_id, client_id ) VALUES (?, ?)";
         $stmt = $conn->prepare($insert_hire_query);
 
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Close the job post after status update
-    $update_post_query = "UPDATE lab_post SET status = 'closed' WHERE post_ID = ?";
+    $update_post_query = "UPDATE job_post SET status = 'closed' WHERE post_ID = ?";
     $stmt = $conn->prepare($update_post_query);
 
     if ($stmt === false) {
