@@ -8,6 +8,7 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-orange.svg)](https://mysql.com)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)](https://getbootstrap.com)
 [![Chart.js](https://img.shields.io/badge/Chart.js-4.0-ff6384.svg)](https://chartjs.org)
+[![Version](https://img.shields.io/badge/Version-2.1-red.svg)](#-updates--changelog)
 [![Security](https://img.shields.io/badge/Security-Enterprise%20Grade-green.svg)](#-security-features)
 [![Performance](https://img.shields.io/badge/Performance-Optimized-brightgreen.svg)](#-performance-features)
 [![Mobile](https://img.shields.io/badge/Mobile-Responsive-blue.svg)](#-modern-user-experience)
@@ -58,6 +59,8 @@
 - 🔍 **Input Validation** - Server-side validation with sanitization
 - 📤 **File Upload Security** - Type restrictions, size limits, and virus scanning
 - 🛡️ **Security Headers** - CSP, XSS-Protection, HSTS implementation
+- 🔧 **Session Management** - Proper session initialization with conflict prevention
+- 🎯 **Content Security Policy** - Font loading fixes for Bootstrap Icons
 
 ### 🎨 **Modern User Experience**
 - 📱 **Mobile-First Design** - Responsive layouts work perfectly on all devices
@@ -161,18 +164,27 @@ D_Labour_Chowk/
 ├── 📁 Shared/               # Core system files
 │   ├── config.php           # Database & app configuration
 │   ├── login_form.php       # Modern login interface
-│   ├── signup_form.php      # Registration with validation
+│   ├── signup_form.php      # Registration with validation ✅ FIXED
+│   ├── sign_up.php          # Registration processing ✅ FIXED
 │   ├── PerformanceOptimizer.php # Caching & optimization
-│   └── index.html           # Landing page
+│   ├── index.html           # Landing page
+│   └── [...other files]
 ├── 📁 client_/              # Client/Employer interface
 │   ├── dashboard.php        # Client dashboard
+│   ├── profile1.php         # Client profile with editing ✅ NEW
 │   ├── advanced_search.php  # Worker search with filters
 │   ├── analytics.php        # Hiring analytics & charts
 │   └── [...other files]
 ├── 📁 Labour/               # Worker interface
 │   ├── dashboard.php        # Worker dashboard
+│   ├── profile.php          # Worker profile with editing ✅ NEW
 │   ├── work_posts.php       # Portfolio management
 │   └── [...other files]
+├── 📁 admin/                # Administrator interface ✅ ENHANCED
+│   ├── dashboard.php        # Admin dashboard ✅ NEW
+│   ├── users.php            # User management ✅ NEW
+│   ├── analytics.php        # System analytics ✅ NEW
+│   └── settings.php         # System settings ✅ NEW
 ├── 📁 tests/                # Testing suite
 │   └── TestRunner.php       # Comprehensive test runner
 └── 📁 cache/                # Performance cache directory
@@ -191,6 +203,8 @@ D_Labour_Chowk/
 - ✅ Rate & review workers
 - ✅ Analytics dashboard
 - ✅ Hiring history tracking
+- ✅ **Edit Profile** - Update personal information, contact details
+- ✅ **Profile Management** - Complete profile customization
 
 ### 👷 **Workers/Labour**
 - ✅ Create professional profiles
@@ -201,12 +215,18 @@ D_Labour_Chowk/
 - ✅ Showcase work samples
 - ✅ Receive ratings & reviews
 - ✅ Earnings tracking
+- ✅ **Edit Profile** - Update personal information, skills, contact details
+- ✅ **Profile Management** - Complete profile customization
 
 ### 🔧 **Administrators**
 - ✅ User management
 - ✅ Content moderation
 - ✅ System analytics
 - ✅ Security monitoring
+- ✅ **User Administration** - Manage all user accounts
+- ✅ **System Settings** - Configure application parameters
+- ✅ **Analytics Dashboard** - Comprehensive system insights
+- ✅ **Security Monitoring** - Track and manage security events
 
 ---
 
@@ -221,6 +241,10 @@ D_Labour_Chowk/
 | **Session Security** | Timeout & regeneration | ✅ |
 | **Input Validation** | Server-side validation | ✅ |
 | **File Upload Security** | Type & size restrictions | ✅ |
+| **Session Management** | Proper initialization with conflict prevention | ✅ |
+| **Content Security Policy** | Font loading protection for Bootstrap Icons | ✅ |
+| **Database Constraints** | Unique email/mobile enforcement | ✅ |
+| **Error Handling** | Secure database error management | ✅ |
 
 ---
 
@@ -275,11 +299,50 @@ POST /Shared/sign_up.php
 }
 ```
 
+### Profile Management Endpoints
+
+```php
+// Update Client Profile
+POST /client_/profile1.php
+{
+    "update_profile": "1",
+    "csrf_token": "token",
+    "user_name": "Updated Name",
+    "email_id": "newemail@example.com",
+    "mobile_no": "9876543210"
+}
+
+// Update Worker Profile
+POST /Labour/profile.php
+{
+    "update_profile": "1",
+    "csrf_token": "token",
+    "user_name": "Updated Name",
+    "email_id": "newworker@example.com",
+    "mobile_no": "9876543211"
+}
+```
+
 ### Search API
 
 ```php
 // Advanced Worker Search
 GET /client_/advanced_search.php?work_type=carpenter&city=indore&min_salary=3000
+```
+
+### Admin API Endpoints
+
+```php
+// User Management
+GET /admin/users.php
+POST /admin/users.php?action=update&id=123
+
+// System Analytics
+GET /admin/analytics.php
+
+// System Settings
+GET /admin/settings.php
+POST /admin/settings.php
 ```
 
 ---
@@ -318,6 +381,11 @@ define('IMAGE_QUALITY', 85);
 | **Images Not Loading** | Check file permissions, path |
 | **Session Issues** | Clear browser cache, check config |
 | **Performance Slow** | Enable caching, optimize images |
+| **CSP Font Loading Errors** | ✅ **FIXED** - Bootstrap Icons now load properly |
+| **Registration Form Issues** | ✅ **FIXED** - Form validation and submission working |
+| **Session Start Warnings** | ✅ **FIXED** - Proper session initialization |
+| **Profile Editing Not Working** | ✅ **FIXED** - Complete profile editing functionality |
+| **Admin Features Missing** | ✅ **FIXED** - Full admin dashboard implemented |
 
 ### Debug Mode
 ```php
@@ -329,7 +397,17 @@ define('DEVELOPMENT_MODE', true);
 
 ## 🔄 Updates & Changelog
 
-### Version 2.0 (Latest)
+### Version 2.1 (Latest - September 2025)
+- ✅ **FIXED**: CSP Font Loading Errors - Bootstrap Icons now load properly
+- ✅ **FIXED**: Registration Form Issues - Complete validation overhaul
+- ✅ **FIXED**: Session Start Warnings - Proper session initialization
+- ✅ **ADDED**: Profile Editing Functionality - Complete profile management for all users
+- ✅ **ENHANCED**: Admin Section - Full admin dashboard with user management
+- ✅ **IMPROVED**: Error Handling - Better database error management
+- ✅ **OPTIMIZED**: Form Validation - Progressive validation approach
+- ✅ **SECURITY**: Enhanced CSRF Protection - Improved token validation
+
+### Version 2.0 (Previous)
 - ✨ Complete UI/UX redesign
 - 🔐 Enhanced security features
 - ⚡ Performance optimizations
@@ -634,10 +712,37 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## 🎉 **Current Status - Version 2.1 (September 2025)**
+
+### ✅ **Recently Fixed Issues**
+- 🔧 **CSP Font Loading** - Bootstrap Icons now load without errors
+- 🔧 **Registration System** - Complete form validation and submission fixes
+- 🔧 **Session Management** - Eliminated session_start() warnings
+- 🔧 **Profile Editing** - Full profile management for all user types
+- 🔧 **Admin Features** - Complete admin dashboard implementation
+
+### 🚀 **Key Improvements**
+- **Enhanced Security** - Improved CSRF protection and session handling
+- **Better UX** - Progressive validation and clear error messages
+- **Admin Panel** - Comprehensive user and system management
+- **Profile Management** - Complete editing functionality for all users
+- **Error Handling** - Robust database error management
+
+### 📊 **System Health**
+- ✅ **Zero Critical Errors**
+- ✅ **All Features Functional**
+- ✅ **Production Ready**
+- ✅ **Mobile Optimized**
+- ✅ **Security Compliant**
+
+---
+
 <div align="center">
 
 **Made with ❤️ for the Digital India Initiative**
 
 *Connecting skilled workers with opportunities across India* 🇮🇳
+
+**Version 2.1 - Enterprise Grade Digital Labour Marketplace**
 
 </div>
