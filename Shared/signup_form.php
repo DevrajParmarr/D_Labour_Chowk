@@ -1,6 +1,11 @@
 <?php
 require_once 'config.php';
 
+// Check if session is already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Redirect if already logged in
 if (isLoggedIn()) {
     $user_type = getCurrentUserType();
@@ -21,8 +26,9 @@ $csrf_token = generateCSRFToken();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - D Labour Chowk</title>
+    <meta http-equiv="Content-Security-Policy" content="font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net;">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -319,9 +325,9 @@ $csrf_token = generateCSRFToken();
             
             <div class="form-group">
                 <label class="form-label">I am a:</label>
-                <input type="hidden" name="usertype" id="usertype" required>
+                <input type="hidden" name="usertype" id="usertype" value="User">
                 <div class="user-type-cards">
-                    <div class="user-type-card" onclick="selectUserType('User')" id="userCard">
+                    <div class="user-type-card selected" onclick="selectUserType('User')" id="userCard">
                         <i class="bi bi-briefcase"></i>
                         <h6>Client</h6>
                         <p class="mb-0 small">Looking for workers</p>
@@ -332,9 +338,10 @@ $csrf_token = generateCSRFToken();
                         <p class="mb-0 small">Offering services</p>
                     </div>
                 </div>
+                <small class="text-danger" id="usertypeError" style="display: none;">Please select your user type</small>
             </div>
             
-            <button type="submit" class="btn btn-signup" id="submitBtn" disabled>
+            <button type="submit" class="btn btn-signup" id="submitBtn">
                 <span class="signup-text">
                     <i class="bi bi-person-plus"></i> Create Account
                 </span>
@@ -401,27 +408,17 @@ $csrf_token = generateCSRFToken();
         function checkPasswordStrength(password) {
             const strengthBar = document.getElementById('strengthBar');
             const strengthText = document.getElementById('strengthText');
-            
+
             let score = 0;
-            let feedback = [];
-            
-            if (password.length >= 8) score++;
-            else feedback.push('at least 8 characters');
-            
+
+            if (password.length >= 6) score++;
             if (/[a-z]/.test(password)) score++;
-            else feedback.push('lowercase letters');
-            
             if (/[A-Z]/.test(password)) score++;
-            else feedback.push('uppercase letters');
-            
             if (/[0-9]/.test(password)) score++;
-            else feedback.push('numbers');
-            
             if (/[^A-Za-z0-9]/.test(password)) score++;
-            else feedback.push('special characters');
-            
+
             strengthBar.className = 'strength-bar';
-            
+
             if (score <= 1) {
                 strengthBar.classList.add('strength-weak');
                 strengthText.textContent = 'Weak password';
@@ -439,8 +436,8 @@ $csrf_token = generateCSRFToken();
                 strengthText.textContent = 'Very strong password';
                 strengthText.className = 'text-success';
             }
-            
-            return score >= 2;
+
+            return score >= 1; // Allow any password with at least 6 characters
         }
         
         function validateForm() {
@@ -449,34 +446,50 @@ $csrf_token = generateCSRFToken();
             const usertype = document.getElementById('usertype').value;
             const submitBtn = document.getElementById('submitBtn');
             const passwordMatch = document.getElementById('passwordMatch');
-            
+            const usertypeError = document.getElementById('usertypeError');
+
             let isValid = true;
-            
-            // Check password match
-            if (confirmPassword && password !== confirmPassword) {
+
+            // Check password match (only if both fields have content)
+            if (confirmPassword && password && password !== confirmPassword) {
                 passwordMatch.textContent = 'Passwords do not match';
                 passwordMatch.style.display = 'block';
-                isValid = false;
+                // Don't set isValid to false - let server handle this
             } else {
                 passwordMatch.style.display = 'none';
             }
-            
+
             // Check if user type is selected
             if (!usertype) {
+                usertypeError.textContent = 'Please select your user type';
+                usertypeError.style.display = 'block';
+                isValid = false;
+            } else {
+                usertypeError.style.display = 'none';
+            }
+
+            // Basic password check (minimum 6 characters)
+            if (password && password.length < 6) {
                 isValid = false;
             }
-            
-            // Check password strength
-            if (password && !checkPasswordStrength(password)) {
-                isValid = false;
-            }
-            
-            submitBtn.disabled = !isValid;
+
+            // Don't disable the submit button - let server handle validation
+            submitBtn.disabled = false;
+            return isValid;
         }
         
-        // Form validation
-        document.getElementById('password').addEventListener('input', validateForm);
+        // Form validation - only validate on input, don't block submission
+        document.getElementById('password').addEventListener('input', function() {
+            validateForm();
+            checkPasswordStrength(this.value);
+        });
         document.getElementById('confirmPassword').addEventListener('input', validateForm);
+
+        // Also validate on form submit (but allow submission for server-side validation)
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            // Don't prevent submission, let server handle validation
+            return true;
+        });
         
         // Format mobile number input
         document.querySelector('input[name="mobile"]').addEventListener('input', function(e) {

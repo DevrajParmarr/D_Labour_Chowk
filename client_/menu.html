@@ -527,13 +527,23 @@
             });
 
             function loadProfileData() {
-                // Simulate loading profile data (replace with actual API call)
-                setTimeout(() => {
-                    document.getElementById('profile-name').textContent = 'John Doe';
-                    document.getElementById('profile-email').textContent = 'john@example.com';
-                    document.getElementById('profile-phone').textContent = '+91 9876543210';
-                    document.getElementById('profile-joined').textContent = 'Jan 2024';
-                }, 500);
+                // Load actual user data from session/database
+                fetch('get_profile.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('profile-name').textContent = data.user_name || 'N/A';
+                        document.getElementById('profile-email').textContent = data.email_id || 'N/A';
+                        document.getElementById('profile-phone').textContent = data.mobile_no || 'N/A';
+                        document.getElementById('profile-joined').textContent = data.date_created || 'N/A';
+                    })
+                    .catch(error => {
+                        console.error('Error loading profile data:', error);
+                        // Fallback to session data if available
+                        document.getElementById('profile-name').textContent = '<?php echo isset($_SESSION["user_name"]) ? htmlspecialchars($_SESSION["user_name"]) : "N/A"; ?>';
+                        document.getElementById('profile-email').textContent = 'N/A';
+                        document.getElementById('profile-phone').textContent = 'N/A';
+                        document.getElementById('profile-joined').textContent = 'N/A';
+                    });
             }
         });
     </script>

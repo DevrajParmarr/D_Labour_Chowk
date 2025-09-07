@@ -16,6 +16,53 @@ $user_ID = getCurrentUserId();
 
 include "menu.html";
 
+$csrf_token = generateCSRFToken();
+
+// Handle profile update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+    if (!validateCSRFToken($_POST['csrf_token'])) {
+        $error = "Invalid CSRF token";
+    } else {
+        $new_name = sanitizeInput($_POST['user_name']);
+        $new_email = sanitizeInput($_POST['email_id']);
+        $new_mobile = sanitizeInput($_POST['mobile_no']);
+
+        // Validate inputs
+        if (empty($new_name) || empty($new_email) || empty($new_mobile)) {
+            $error = "All fields are required";
+        } elseif (!filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
+            $error = "Invalid email format";
+        } elseif (!preg_match('/^[0-9]{10}$/', $new_mobile)) {
+            $error = "Mobile number must be 10 digits";
+        } else {
+            // Check if email is already taken by another user
+            $check_email = $conn->prepare("SELECT user_ID FROM user WHERE email_id = ? AND user_ID != ?");
+            $check_email->bind_param("si", $new_email, $user_ID);
+            $check_email->execute();
+            if ($check_email->get_result()->num_rows > 0) {
+                $error = "Email is already taken";
+            } else {
+                // Update user profile
+                $update_stmt = $conn->prepare("UPDATE user SET user_name = ?, email_id = ?, mobile_no = ? WHERE user_ID = ?");
+                $update_stmt->bind_param("sssi", $new_name, $new_email, $new_mobile, $user_ID);
+
+                if ($update_stmt->execute()) {
+                    $success = "Profile updated successfully";
+                    // Refresh user data
+                    $user['user_name'] = $new_name;
+                    $user['email_id'] = $new_email;
+                    $user['mobile_no'] = $new_mobile;
+
+                    // Update session data to reflect changes across the application
+                    $_SESSION['user_name'] = $new_name;
+                } else {
+                    $error = "Failed to update profile";
+                }
+            }
+        }
+    }
+}
+
 // Get user details
 $sql = "SELECT user_name, mobile_no, email_id FROM user WHERE user_ID = ?";
 $stmt = $conn->prepare($sql);
@@ -503,26 +550,33 @@ $conn->close();
                 <i class="fas fa-hard-hat"></i>
             </div>
             <div class="profile-info" data-aos="fade-left">
-                <h1><?php echo htmlspecialchars($user['user_name']); ?></h1>
-                <div class="profile-meta">
-                    <div class="meta-item">
-                        <i class="fas fa-envelope"></i>
-                        <span><?php echo htmlspecialchars($user['email_id']); ?></span>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h1><?php echo htmlspecialchars($user['user_name']); ?></h1>
+                        <div class="profile-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-envelope"></i>
+                                <span><?php echo htmlspecialchars($user['email_id']); ?></span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-phone"></i>
+                                <span><?php echo htmlspecialchars($user['mobile_no']); ?></span>
+                            </div>
+                        </div>
+                        <div class="profile-badges">
+                            <div class="profile-badge">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Verified Worker
+                            </div>
+                            <div class="profile-badge badge-featured">
+                                <i class="fas fa-star me-2"></i>
+                                Featured
+                            </div>
+                        </div>
                     </div>
-                    <div class="meta-item">
-                        <i class="fas fa-phone"></i>
-                        <span><?php echo htmlspecialchars($user['mobile_no']); ?></span>
-                    </div>
-                </div>
-                <div class="profile-badges">
-                    <div class="profile-badge">
-                        <i class="fas fa-shield-alt me-2"></i>
-                        Verified Worker
-                    </div>
-                    <div class="profile-badge badge-featured">
-                        <i class="fas fa-star me-2"></i>
-                        Featured
-                    </div>
+                    <button class="btn btn-light btn-lg ms-3" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </button>
                 </div>
             </div>
         </div>
@@ -744,6 +798,86 @@ $conn->close();
                 this.style.transform = 'translateY(0) scale(1)';
             });
         });
+
+        // Auto-hide success/error messages after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s ease';
+                setTimeout(function() {
+                    alert.style.display = 'none';
+                }, 500);
+            });
+        }, 5000);
     </script>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: var(--gradient-primary); color: white;">
+                    <h5 class="modal-title" id="editProfileModalLabel">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="">
+                    <div class="modal-body">
+                        <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                        <input type="hidden" name="update_profile" value="1">
+
+                        <?php if (isset($error)): ?>
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle me-2"></i><?php echo $error; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (isset($success)): ?>
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i><?php echo $success; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="user_name" class="form-label">
+                                    <i class="fas fa-user me-1"></i>Full Name
+                                </label>
+                                <input type="text" class="form-control" id="user_name" name="user_name"
+                                       value="<?php echo htmlspecialchars($user['user_name']); ?>" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="email_id" class="form-label">
+                                    <i class="fas fa-envelope me-1"></i>Email Address
+                                </label>
+                                <input type="email" class="form-control" id="email_id" name="email_id"
+                                       value="<?php echo htmlspecialchars($user['email_id']); ?>" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="mobile_no" class="form-label">
+                                    <i class="fas fa-phone me-1"></i>Mobile Number
+                                </label>
+                                <input type="tel" class="form-control" id="mobile_no" name="mobile_no"
+                                       value="<?php echo htmlspecialchars($user['mobile_no']); ?>"
+                                       pattern="[0-9]{10}" maxlength="10" required>
+                                <div class="form-text">Enter 10-digit mobile number</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

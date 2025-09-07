@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT user_ID, user_name, password, user_type, mobile_no, Verified FROM user WHERE mobile_no = ?");
+        $stmt = $db->prepare("SELECT user_ID, user_name, password, user_type, mobile_no FROM user WHERE mobile_no = ?");
         $stmt->bind_param('s', $mobile_no);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -36,14 +36,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
 
-            // Check if email is verified
-            // if ($user['Verified'] != 1) {
-            //     $_SESSION['login_error'] = 'Please verify your email address before logging in.';
-            //     redirect('login_form.php');
-            // }
+            // Verify password (support both hashed and plain text for backward compatibility)
+            $password_valid = false;
 
-            // Verify password (using plain text for existing users)
-            if ($password === $user['password']) {
+            // First try password_verify for hashed passwords (new users)
+            if (password_verify($password, $user['password'])) {
+                $password_valid = true;
+            }
+            // Then try plain text comparison for existing users
+            elseif ($password === $user['password']) {
+                $password_valid = true;
+            }
+
+            if ($password_valid) {
                 // Regenerate session ID for security
                 session_regenerate_id(true);
 

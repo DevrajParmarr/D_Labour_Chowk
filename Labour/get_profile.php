@@ -1,14 +1,14 @@
 <?php
 require_once '../Shared/config.php';
 
-// Check if user is logged in and is a client
+// Check if user is logged in and is a labour
 if (!isLoggedIn()) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit;
 }
 
-if (getCurrentUserType() !== 'User') {
+if (getCurrentUserType() !== 'Labour') {
     http_response_code(403);
     echo json_encode(['error' => 'Forbidden']);
     exit;
