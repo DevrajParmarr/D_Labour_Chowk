@@ -96,7 +96,7 @@ function sendPasswordResetEmail($email, $reset_token, $user_name) {
         $mail->isHTML(true);
         $mail->Subject = 'Password Reset - D Labour Chowk';
 
-        $reset_link = "http://localhost/D_Labour_Chowk/Shared/reset_password.php?token=" . $reset_token;
+        $reset_link = APP_URL . "/Shared/reset_password.php?token=" . $reset_token;
 
         $mail->Body = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>

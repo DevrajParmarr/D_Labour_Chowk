@@ -5,14 +5,14 @@
  */
 
 // Database Configuration
-define('DB_HOST', 'localhost');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
-define('DB_NAME', 'd_labour');
+define('DB_HOST', getenv('MYSQLHOST') ?: 'localhost');
+define('DB_USERNAME', getenv('MYSQLUSER') ?: 'root');
+define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: '');
+define('DB_NAME', getenv('MYSQLDATABASE') ?: 'd_labour');
 
 // Application Configuration
 define('APP_NAME', 'D_Labour Chowk');
-define('APP_URL', 'http://localhost/D_Labour_Chowk');
+define('APP_URL', getenv('RAILWAY_STATIC_URL') ?: 'http://localhost/D_Labour_Chowk');
 define('APP_VERSION', '2.0');
 
 // File Upload Configuration
@@ -28,7 +28,7 @@ define('BCRYPT_COST', 12);
 define('CSRF_TOKEN_LENGTH', 32);
 
 // Development Mode
-define('DEVELOPMENT_MODE', true);
+define('DEVELOPMENT_MODE', getenv('DEVELOPMENT_MODE') ?: false);
 
 // Error Reporting
 if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {

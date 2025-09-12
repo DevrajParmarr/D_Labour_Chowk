@@ -1,4 +1,5 @@
 <?php
+require_once '../Shared/config.php';
 session_start();
 
 // Check if user is logged in and is a client
@@ -60,7 +61,7 @@ if ($stmt = mysqli_prepare($conn, $query)) {
     mysqli_stmt_bind_param($stmt, "sissssi", $jobTitle, $salary, $detail, $city, $location, $file_name, $_SESSION['user_id']);
 
     if (mysqli_stmt_execute($stmt)) {
-        $redirectUrl = "http://localhost/D_Labour_Chowk/client_/view.php";
+        $redirectUrl = APP_URL . "/client_/view.php";
         echo "<script>alert('Post created successfully! Click OK to view your posts.');
         setTimeout(function() {
             window.location.href = '$redirectUrl';

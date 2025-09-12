@@ -1,0 +1,50 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+logs/
+cache/*.log
+
+# Cache files
+cache/*
+!cache/.gitkeep
+
+# Uploads (in production, these should be handled by cloud storage)
+Shared/uploads/*
+!Shared/uploads/.gitkeep
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database files (don't commit sensitive data)
+*.sql
+!d_labour.sql
+
+# Temporary files
+tmp/
+temp/
+
+# Composer
+composer.lock
+
+# Railway
+.railway/

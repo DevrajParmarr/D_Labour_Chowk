@@ -84,11 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['last_activity'] = time();
 
             if ($usertype == "Labour") {
-                $redirectUrl = "http://localhost/D_Labour_Chowk/Labour/dashboard.php";
+                $redirectUrl = APP_URL . "/Labour/dashboard.php";
                 $message = 'Successfully signed up as Labour! Welcome to the platform.';
                 echo "<script>alert('$message'); window.location.href = '$redirectUrl';</script>";
             } else if ($usertype == "User") {
-                $redirectUrl = "http://localhost/D_Labour_Chowk/client_/dashboard.php";
+                $redirectUrl = APP_URL . "/client_/dashboard.php";
                 $message = 'Successfully signed up! Welcome to the platform.';
                 echo "<script>alert('$message'); window.location.href = '$redirectUrl';</script>";
             }

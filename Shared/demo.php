@@ -2,7 +2,8 @@
  
 print_r($_POST);
 
-$connec = new mysqli("localhost", "root", "", "d_labour", 3306);
+require_once 'config.php';
+$connec = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
 
 if ($connec->connect_error) {
     die("Connection failed: " . $connec->connect_error);

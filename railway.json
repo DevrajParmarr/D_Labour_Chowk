@@ -1,0 +1,11 @@
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "apache2-foreground"
+  },
+  "variables": {
+    "NIXPACKS_PHP_VERSION": "8.2"
+  }
+}
