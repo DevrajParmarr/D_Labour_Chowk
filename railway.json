@@ -1,11 +1,18 @@
 {
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "buildCommand": "composer install --no-dev --optimize-autoloader"
   },
   "deploy": {
-    "startCommand": "apache2-foreground"
+    "startCommand": "php -S 0.0.0.0:$PORT -t .",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 300,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
   },
   "variables": {
-    "NIXPACKS_PHP_VERSION": "8.2"
+    "NIXPACKS_PHP_VERSION": "8.2",
+    "PHP_MEMORY_LIMIT": "256M",
+    "PHP_MAX_EXECUTION_TIME": "300"
   }
 }

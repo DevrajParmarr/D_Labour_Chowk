@@ -1,82 +1,41 @@
-# Enable URL rewriting
-RewriteEngine On
+# Railway PHP Configuration - Simplified for PHP built-in server
 
-# Set base directory for proper routing
-RewriteBase /
+# Security headers (PHP implementation)
+<?php
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+?>
 
-# Handle PHP files without .php extension
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME}.php -f
-RewriteRule ^(.*)$ $1.php [L]
-
-# Route client requests
-RewriteRule ^client/(.*)$ src/Controllers/Client/$1 [L,QSA]
-RewriteRule ^labour/(.*)$ src/Controllers/Labour/$1 [L,QSA]
-RewriteRule ^admin/(.*)$ src/Controllers/Admin/$1 [L,QSA]
-
-# Route API requests
-RewriteRule ^api/(.*)$ src/Controllers/api/$1 [L,QSA]
-
-# Route shared/auth requests
-RewriteRule ^auth/(.*)$ src/Controllers/$1 [L,QSA]
-RewriteRule ^shared/(.*)$ src/Controllers/$1 [L,QSA]
-
-# Route asset requests
-RewriteRule ^css/(.*)$ public/css/$1 [L]
-RewriteRule ^js/(.*)$ public/js/$1 [L]
-RewriteRule ^images/(.*)$ public/images/$1 [L]
-RewriteRule ^uploads/(.*)$ public/uploads/$1 [L]
-
-# Security headers
-Header always set X-Content-Type-Options nosniff
-Header always set X-Frame-Options DENY
-Header always set X-XSS-Protection "1; mode=block"
-Header always set Referrer-Policy "strict-origin-when-cross-origin"
-
-# Prevent access to sensitive files and directories
+# Prevent access to sensitive files
 <FilesMatch "\.(htaccess|htpasswd|ini|log|sh|inc|bak|sql)$">
-    Require all denied
+    Order deny,allow
+    Deny from all
 </FilesMatch>
 
 <Files "config.php">
-    Require all denied
+    Order deny,allow
+    Deny from all
 </Files>
 
-# Protect sensitive directories
-RewriteRule ^(config|src|database|docs)/ - [F,L]
+# PHP settings for Railway
+php_value upload_max_filesize 10M
+php_value post_max_size 10M
+php_value memory_limit 256M
+php_value max_execution_time 300
+php_value max_input_vars 3000
 
-# Enable compression
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/plain
-    AddOutputFilterByType DEFLATE text/html
-    AddOutputFilterByType DEFLATE text/xml
-    AddOutputFilterByType DEFLATE text/css
-    AddOutputFilterByType DEFLATE application/xml
-    AddOutputFilterByType DEFLATE application/xhtml+xml
-    AddOutputFilterByType DEFLATE application/rss+xml
-    AddOutputFilterByType DEFLATE application/javascript
-    AddOutputFilterByType DEFLATE application/x-javascript
-    AddOutputFilterByType DEFLATE application/json
-</IfModule>
+# Force HTTPS on Railway
+RewriteEngine On
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Cache static resources
-<IfModule mod_expires.c>
-    ExpiresActive On
-    ExpiresByType image/jpg "access plus 1 month"
-    ExpiresByType image/jpeg "access plus 1 month"
-    ExpiresByType image/gif "access plus 1 month"
-    ExpiresByType image/png "access plus 1 month"
-    ExpiresByType image/webp "access plus 1 month"
-    ExpiresByType text/css "access plus 1 month"
-    ExpiresByType application/pdf "access plus 1 month"
-    ExpiresByType text/javascript "access plus 1 month"
-    ExpiresByType application/javascript "access plus 1 month"
-    ExpiresByType application/x-javascript "access plus 1 month"
-    ExpiresByType application/x-shockwave-flash "access plus 1 month"
-    ExpiresByType image/x-icon "access plus 1 year"
-    ExpiresByType font/woff2 "access plus 1 year"
-    ExpiresDefault "access plus 2 days"
-</IfModule>
+# Handle PHP files without .php extension (for Railway's PHP server)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*)$ $1.php [L]
 
 # Set default index files
 DirectoryIndex index.php index.html
@@ -84,21 +43,14 @@ DirectoryIndex index.php index.html
 # Prevent directory listing
 Options -Indexes
 
-# PHP settings
-php_value upload_max_filesize 10M
-php_value post_max_size 10M
-php_value memory_limit 256M
-php_value max_execution_time 300
-php_value max_input_vars 3000
-
-# Handle 404 errors
-ErrorDocument 404 /src/Views/404.html
-ErrorDocument 403 /src/Views/403.html
-
-# Render.com specific configuration
-# Handle dynamic port assignment
-SetEnvIf Host ^(.*)$ PORT=$1
-
-# Force HTTPS on Render
-RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# Cache headers for static files
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresDefault "access plus 1 day"
+</IfModule>

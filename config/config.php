@@ -4,26 +4,25 @@
  * This file contains database connection settings
  */
 
-// Database Configuration - Support both Railway, Render, and local development
-$database_url = getenv('DATABASE_URL') ?: getenv('MYSQL_URL') ?: null;
+// Database Configuration - Railway optimized
+// Railway provides these environment variables for MySQL
+define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'localhost');
+define('DB_USERNAME', getenv('MYSQLUSER') ?: getenv('DB_USERNAME') ?: 'root');
+define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '');
+define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'd_labour');
+define('DB_PORT', getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: 3306);
+define('DB_TYPE', 'mysql');
 
-if ($database_url) {
-    // Parse database URL for Render/PostgreSQL or Railway/MySQL
+// Alternative: If Railway provides DATABASE_URL (for PostgreSQL)
+$database_url = getenv('DATABASE_URL');
+if ($database_url && strpos($database_url, 'postgres') !== false) {
     $db_url = parse_url($database_url);
-    define('DB_HOST', $db_url['host'] ?? 'localhost');
-    define('DB_USERNAME', $db_url['user'] ?? 'root');
-    define('DB_PASSWORD', $db_url['pass'] ?? '');
-    define('DB_NAME', ltrim($db_url['path'] ?? '/d_labour', '/'));
-    define('DB_PORT', $db_url['port'] ?? 5432);
-    define('DB_TYPE', strpos($database_url, 'postgres') !== false ? 'pgsql' : 'mysql');
-} else {
-    // Fallback for local development
-    define('DB_HOST', getenv('MYSQLHOST') ?: 'localhost');
-    define('DB_USERNAME', getenv('MYSQLUSER') ?: 'root');
-    define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: '');
-    define('DB_NAME', getenv('MYSQLDATABASE') ?: 'd_labour');
-    define('DB_PORT', getenv('MYSQLPORT') ?: 3306);
-    define('DB_TYPE', 'mysql');
+    define('DB_HOST', $db_url['host']);
+    define('DB_USERNAME', $db_url['user']);
+    define('DB_PASSWORD', $db_url['pass']);
+    define('DB_NAME', ltrim($db_url['path'], '/'));
+    define('DB_PORT', $db_url['port'] ?: 5432);
+    define('DB_TYPE', 'pgsql');
 }
 
 // Application Configuration
