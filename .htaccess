@@ -94,3 +94,11 @@ php_value max_input_vars 3000
 # Handle 404 errors
 ErrorDocument 404 /src/Views/404.html
 ErrorDocument 403 /src/Views/403.html
+
+# Render.com specific configuration
+# Handle dynamic port assignment
+SetEnvIf Host ^(.*)$ PORT=$1
+
+# Force HTTPS on Render
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

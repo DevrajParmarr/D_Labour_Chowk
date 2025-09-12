@@ -4,15 +4,31 @@
  * This file contains database connection settings
  */
 
-// Database Configuration
-define('DB_HOST', getenv('MYSQLHOST') ?: 'localhost');
-define('DB_USERNAME', getenv('MYSQLUSER') ?: 'root');
-define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: '');
-define('DB_NAME', getenv('MYSQLDATABASE') ?: 'd_labour');
+// Database Configuration - Support both Railway, Render, and local development
+$database_url = getenv('DATABASE_URL') ?: getenv('MYSQL_URL') ?: null;
+
+if ($database_url) {
+    // Parse database URL for Render/PostgreSQL or Railway/MySQL
+    $db_url = parse_url($database_url);
+    define('DB_HOST', $db_url['host'] ?? 'localhost');
+    define('DB_USERNAME', $db_url['user'] ?? 'root');
+    define('DB_PASSWORD', $db_url['pass'] ?? '');
+    define('DB_NAME', ltrim($db_url['path'] ?? '/d_labour', '/'));
+    define('DB_PORT', $db_url['port'] ?? 5432);
+    define('DB_TYPE', strpos($database_url, 'postgres') !== false ? 'pgsql' : 'mysql');
+} else {
+    // Fallback for local development
+    define('DB_HOST', getenv('MYSQLHOST') ?: 'localhost');
+    define('DB_USERNAME', getenv('MYSQLUSER') ?: 'root');
+    define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: '');
+    define('DB_NAME', getenv('MYSQLDATABASE') ?: 'd_labour');
+    define('DB_PORT', getenv('MYSQLPORT') ?: 3306);
+    define('DB_TYPE', 'mysql');
+}
 
 // Application Configuration
 define('APP_NAME', 'D_Labour Chowk');
-define('APP_URL', getenv('RAILWAY_STATIC_URL') ?: 'http://localhost/D_Labour_Chowk');
+define('APP_URL', getenv('RENDER_EXTERNAL_URL') ?: getenv('RAILWAY_STATIC_URL') ?: 'http://localhost/D_Labour_Chowk');
 define('APP_VERSION', '2.0');
 
 // File Upload Configuration
@@ -39,22 +55,30 @@ if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
     ini_set('display_errors', 0);
 }
 
-// Database Connection Class
+// Database Connection Class - Support both MySQL and PostgreSQL
 class Database {
     private static $instance = null;
     private $connection;
-    
+
     private function __construct() {
         try {
-            $this->connection = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
-            
-            if ($this->connection->connect_error) {
-                throw new Exception("Database connection failed: " . $this->connection->connect_error);
+            if (DB_TYPE === 'pgsql') {
+                // PostgreSQL connection
+                $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";user=" . DB_USERNAME . ";password=" . DB_PASSWORD;
+                $this->connection = new PDO($dsn);
+                $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            } else {
+                // MySQL connection
+                $this->connection = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT);
+
+                if ($this->connection->connect_error) {
+                    throw new Exception("Database connection failed: " . $this->connection->connect_error);
+                }
+
+                // Set charset to UTF-8
+                $this->connection->set_charset("utf8");
             }
-            
-            // Set charset to UTF-8
-            $this->connection->set_charset("utf8");
-            
+
         } catch (Exception $e) {
             error_log("Database Connection Error: " . $e->getMessage());
             die("Database connection failed. Please try again later.");
@@ -77,27 +101,56 @@ class Database {
     }
     
     public function query($sql) {
-        $result = $this->connection->query($sql);
-        if (!$result) {
-            error_log("SQL Error: " . $this->connection->error . " Query: " . $sql);
+        if (DB_TYPE === 'pgsql') {
+            try {
+                $stmt = $this->connection->query($sql);
+                return $stmt;
+            } catch (Exception $e) {
+                error_log("SQL Error: " . $e->getMessage() . " Query: " . $sql);
+                return false;
+            }
+        } else {
+            $result = $this->connection->query($sql);
+            if (!$result) {
+                error_log("SQL Error: " . $this->connection->error . " Query: " . $sql);
+            }
+            return $result;
         }
-        return $result;
     }
-    
+
     public function prepare($sql) {
-        $stmt = $this->connection->prepare($sql);
-        if (!$stmt) {
-            error_log("Prepare Error: " . $this->connection->error . " Query: " . $sql);
+        if (DB_TYPE === 'pgsql') {
+            try {
+                $stmt = $this->connection->prepare($sql);
+                return $stmt;
+            } catch (Exception $e) {
+                error_log("Prepare Error: " . $e->getMessage() . " Query: " . $sql);
+                return false;
+            }
+        } else {
+            $stmt = $this->connection->prepare($sql);
+            if (!$stmt) {
+                error_log("Prepare Error: " . $this->connection->error . " Query: " . $sql);
+            }
+            return $stmt;
         }
-        return $stmt;
     }
-    
+
     public function getLastInsertId() {
-        return $this->connection->insert_id;
+        if (DB_TYPE === 'pgsql') {
+            return $this->connection->lastInsertId();
+        } else {
+            return $this->connection->insert_id;
+        }
     }
-    
+
     public function getAffectedRows() {
-        return $this->connection->affected_rows;
+        if (DB_TYPE === 'pgsql') {
+            // For PostgreSQL, we need to use rowCount() on the statement
+            return null; // Will be handled by individual queries
+        } else {
+            return $this->connection->affected_rows;
+        }
     }
 }
 
