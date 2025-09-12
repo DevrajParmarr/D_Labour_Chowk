@@ -1,12 +1,10 @@
 # Railway PHP Configuration - Simplified for PHP built-in server
 
-# Security headers (PHP implementation)
-<?php
-header('X-Content-Type-Options: nosniff');
-header('X-Frame-Options: DENY');
-header('X-XSS-Protection: 1; mode=block');
-header('Referrer-Policy: strict-origin-when-cross-origin');
-?>
+# Security headers (Apache directives)
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
 # Prevent access to sensitive files
 <FilesMatch "\.(htaccess|htpasswd|ini|log|sh|inc|bak|sql)$">
