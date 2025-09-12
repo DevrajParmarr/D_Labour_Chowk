@@ -30,7 +30,8 @@ COPY . .
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
-    && chmod -R 777 /var/www/html/Shared/images \
+    && chmod -R 777 /var/www/html/public/images \
+    && chmod -R 777 /var/www/html/public/uploads \
     && chmod -R 777 /var/www/html/cache
 
 # Enable Apache mod_rewrite
