@@ -205,20 +205,10 @@ if (session_status() === PHP_SESSION_NONE) {
     $_SESSION['last_activity'] = time();
 }
 
-// Initialize Performance Optimization
-require_once __DIR__ . '/PerformanceOptimizer.php';
-$performance = PerformanceOptimizer::getInstance();
-
-// Enable compression and caching for better performance
-if (!defined('DISABLE_PERFORMANCE_OPTIMIZATION')) {
-    $performance->enableCompression();
-    
-    // Set cache headers for static resources
-    $current_file = basename($_SERVER['PHP_SELF']);
-    if (in_array($current_file, ['login_form.php', 'signup_form.php', 'dashboard.php'])) {
-        $performance->setCacheHeaders(1800); // 30 minutes for forms
-    }
-}
+// Performance optimization (disabled for now - PerformanceOptimizer.php not available)
+// TODO: Implement performance optimization when needed
+// $performance = PerformanceOptimizer::getInstance();
+// $performance->enableCompression();
 
 // Additional Security Headers
 if (!headers_sent()) {
@@ -249,22 +239,11 @@ if (!headers_sent()) {
  * - Image optimization ready
  */
 
-// Log performance metrics in development mode
-if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
-    register_shutdown_function(function() {
-        $performance = PerformanceOptimizer::getInstance();
-        $metrics = $performance->getPerformanceMetrics();
-        
-        // Log to console in development
-        echo "\n<!-- Performance Metrics:\n";
-        echo "Memory Usage: " . formatBytes($metrics['memory_usage']) . "\n";
-        echo "Peak Memory: " . formatBytes($metrics['memory_peak']) . "\n";
-        if (isset($metrics['execution_time'])) {
-            echo "Execution Time: " . number_format($metrics['execution_time'] * 1000, 2) . "ms\n";
-        }
-        echo "Cache Files: " . $metrics['cache_files'] . "\n";
-        echo "Cache Size: " . formatBytes($metrics['cache_size']) . "\n";
-        echo "-->\n";
-    });
-}
+// Performance metrics logging (disabled for now)
+// TODO: Implement performance monitoring when needed
+// if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
+//     register_shutdown_function(function() {
+//         // Performance metrics logging here
+//     });
+// }
 ?>
