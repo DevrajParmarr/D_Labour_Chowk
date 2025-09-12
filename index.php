@@ -30,7 +30,7 @@ if (isset($_SESSION['user_id'])) {
     exit();
 } else {
     // User not logged in - show landing page
-    header('Location: src/Views/index.html');
+    header('Location: Shared/index.html');
     exit();
 }
 ?>
