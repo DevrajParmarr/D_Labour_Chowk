@@ -6,8 +6,14 @@
  * It handles routing and initializes the application.
  */
 
-// Include configuration
-require_once 'config/config.php';
+// Include configuration with error handling
+try {
+    require_once 'config/config.php';
+} catch (Exception $e) {
+    // If config fails, redirect to landing page
+    header('Location: Shared/index.html');
+    exit();
+}
 
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
@@ -19,13 +25,13 @@ if (isset($_SESSION['user_id'])) {
     // User is logged in
     if ($_SESSION['user_type'] === 'User') {
         // Client/Employer
-        header('Location: src/Controllers/Client/dashboard.php');
+        header('Location: client_/dashboard.php');
     } elseif ($_SESSION['user_type'] === 'Labour') {
         // Worker/Labour
-        header('Location: src/Controllers/Labour/dashboard.php');
+        header('Location: Labour/dashboard.php');
     } elseif ($_SESSION['user_type'] === 'Admin') {
         // Administrator
-        header('Location: src/Controllers/Admin/dashboard.php');
+        header('Location: admin/dashboard.php');
     }
     exit();
 } else {
