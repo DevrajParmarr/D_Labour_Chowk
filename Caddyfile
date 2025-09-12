@@ -2,22 +2,16 @@
     frankenphp
 }
 
-# Root directory - serve index.php
+# Root directory - serve index.php first, then index.html
 / {
-    try_files /index.php
+    try_files /index.php /index.html
     php
 }
 
-# Handle all PHP files
+# Handle all PHP files in any directory
 *.php {
     try_files {path}
     php
-}
-
-# Handle static files in Shared directory
-/Shared/* {
-    try_files {path}
-    file_server
 }
 
 # Handle static files in public directory
@@ -26,8 +20,26 @@
     file_server
 }
 
-# Handle static files (CSS, JS, images, etc.)
+# Handle static files in Shared directory
+/Shared/* {
+    try_files {path}
+    file_server
+}
+
+# Handle static files in src directory
+/src/* {
+    try_files {path}
+    file_server
+}
+
+# Handle static files (CSS, JS, images, etc.) in any directory
 *.css *.js *.png *.jpg *.jpeg *.gif *.svg *.ico *.webp *.woff *.woff2 *.ttf *.eot {
+    try_files {path}
+    file_server
+}
+
+# Handle HTML files
+*.html {
     try_files {path}
     file_server
 }
