@@ -8,7 +8,7 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-orange.svg)](https://mysql.com)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)](https://getbootstrap.com)
 [![Chart.js](https://img.shields.io/badge/Chart.js-4.0-ff6384.svg)](https://chartjs.org)
-[![Version](https://img.shields.io/badge/Version-2.1-red.svg)](#-updates--changelog)
+[![Version](https://img.shields.io/badge/Version-2.2-red.svg)](#-updates--changelog)
 [![Security](https://img.shields.io/badge/Security-Enterprise%20Grade-green.svg)](#-security-features)
 [![Performance](https://img.shields.io/badge/Performance-Optimized-brightgreen.svg)](#-performance-features)
 [![Mobile](https://img.shields.io/badge/Mobile-Responsive-blue.svg)](#-modern-user-experience)
@@ -28,6 +28,8 @@
 - ⚡ **Lightning Fast** - Optimized for slow internet connections
 - 🎨 **User Friendly** - Intuitive design for users of all technical levels
 - 📊 **Data Driven** - Analytics and insights for better decision making
+- 💬 **Real-time Communication** - Instant messaging between clients and workers
+- 📍 **Location Intelligence** - GPS-based smart matching and search
 
 ## 📸 **Screenshots & Demo**
 
@@ -38,10 +40,16 @@
 > Real-time analytics, job management, and hiring insights with interactive charts
 
 ### 🔍 **Advanced Search**
-> Powerful filtering system - search by skills, location, salary range, experience
+> Powerful filtering system - search by skills, location, salary range, experience, and distance
 
-### 👷 **Worker Dashboard** 
+### 👷 **Worker Dashboard**
 > Professional portfolio, job applications, earnings tracking, and performance metrics
+
+### 💬 **Messaging System**
+> Real-time chat interface for seamless communication between clients and workers
+
+### 📍 **Location-Based Search**
+> GPS-enabled search showing nearby workers/jobs with distance calculations
 
 ### 📱 **Mobile Experience**
 > Fully responsive design optimized for smartphones and tablets
@@ -70,6 +78,7 @@
 - ✨ **Smooth Animations** - CSS transitions, hover effects, and micro-interactions
 - 🎯 **Intuitive Navigation** - User-friendly interface design
 - 🌙 **Dark Mode Ready** - Prepared for dark theme implementation
+- 🔔 **Toast Notifications** - Real-time alerts and status updates
 
 ### ⚡ **Performance Optimized**
 - 🗄️ **Smart Caching System** - Database query caching with TTL
@@ -79,6 +88,7 @@
 - 📊 **Database Optimization** - Indexed queries, efficient schemas, connection pooling
 - 🚀 **CDN Ready** - Asset optimization for content delivery networks
 - ⚡ **Page Speed** - < 2 second load times on average connections
+- 🔄 **Auto-refresh** - Dashboard updates without manual refresh
 
 ### 🏢 **Business & Analytics**
 - 👥 **Multi-Role System** - Clients, Workers, Admins with granular permissions
@@ -89,15 +99,19 @@
 - 📈 **Hiring Analytics** - Detailed insights, reports, and performance metrics
 - 💰 **Earnings Tracking** - Income analysis and payment history
 - 🎯 **Smart Matching** - Algorithm-based job-worker matching system
+- 📤 **Application Withdrawal** - Workers can withdraw pending applications
+- 📊 **Advanced Analytics** - Comprehensive dashboards for all user types
 
 ### 🔧 **Advanced Features**
 - 🔔 **Notification System** - Real-time alerts and email notifications
-- 📍 **Location Services** - GPS-based worker search and tracking
+- 📍 **Location Services** - GPS-based worker search and tracking with distance calculations
 - 💬 **Messaging System** - In-app communication between clients and workers
 - 📅 **Scheduling** - Appointment booking and calendar integration
 - 📊 **Reporting** - Generate detailed reports in PDF/Excel formats
 - 🌍 **Multi-language Support** - Prepared for Hindi and regional languages
 - 📱 **Progressive Web App** - Offline capabilities and app-like experience
+- 📁 **File Upload System** - Secure document and image upload functionality
+- 🔄 **Real-time Updates** - Live data synchronization across the platform
 
 ---
 
@@ -121,7 +135,7 @@
    ```bash
    # Option 1: Clone repository
    git clone https://github.com/Devrajparmarr/D_Labour_Chowk.git
-   
+
    # Option 2: Download ZIP and extract to:
    # C:\xampp\htdocs\D_Labour_Chowk
    ```
@@ -168,17 +182,24 @@ D_Labour_Chowk/
 │   ├── sign_up.php          # Registration processing ✅ FIXED
 │   ├── PerformanceOptimizer.php # Caching & optimization
 │   ├── index.html           # Landing page
+│   ├── messaging_service.php # Real-time messaging system
+│   ├── location_service.php # GPS-based location services
+│   ├── notification_system.php # Toast notifications & alerts
 │   └── [...other files]
 ├── 📁 client_/              # Client/Employer interface
 │   ├── dashboard.php        # Client dashboard
 │   ├── profile1.php         # Client profile with editing ✅ NEW
 │   ├── advanced_search.php  # Worker search with filters
 │   ├── analytics.php        # Hiring analytics & charts
+│   ├── rate_labour.php      # Rating system for workers
+│   ├── hiredLabour.php      # Hired workers management
 │   └── [...other files]
 ├── 📁 Labour/               # Worker interface
 │   ├── dashboard.php        # Worker dashboard
 │   ├── profile.php          # Worker profile with editing ✅ NEW
 │   ├── work_posts.php       # Portfolio management
+│   ├── appliedJob.php       # Application tracking
+│   ├── withdraw_application.php # Application withdrawal
 │   └── [...other files]
 ├── 📁 admin/                # Administrator interface ✅ ENHANCED
 │   ├── dashboard.php        # Admin dashboard ✅ NEW
@@ -195,38 +216,47 @@ D_Labour_Chowk/
 ## 👥 User Roles & Features
 
 ### 🏢 **Clients/Employers**
-- ✅ Post job requirements
-- ✅ Browse worker profiles
-- ✅ Advanced search & filtering
-- ✅ Manage applications
-- ✅ Hire workers
-- ✅ Rate & review workers
-- ✅ Analytics dashboard
-- ✅ Hiring history tracking
+- ✅ Post job requirements with detailed specifications
+- ✅ Browse worker profiles with ratings and reviews
+- ✅ Advanced search & filtering by skills, location, experience
+- ✅ Location-based search with distance calculations
+- ✅ Manage applications and hiring pipeline
+- ✅ Hire workers and track project progress
+- ✅ Rate & review workers after project completion
+- ✅ Real-time messaging with hired workers
+- ✅ Analytics dashboard with hiring insights
+- ✅ Hiring history and performance tracking
 - ✅ **Edit Profile** - Update personal information, contact details
 - ✅ **Profile Management** - Complete profile customization
+- ✅ **File Upload** - Upload project documents and requirements
 
 ### 👷 **Workers/Labour**
-- ✅ Create professional profiles
-- ✅ Browse job opportunities
-- ✅ Apply to jobs
-- ✅ Track application status
-- ✅ Portfolio management
-- ✅ Showcase work samples
-- ✅ Receive ratings & reviews
-- ✅ Earnings tracking
+- ✅ Create professional profiles with skills and experience
+- ✅ Browse job opportunities with advanced filtering
+- ✅ Apply to jobs with custom cover messages
+- ✅ Track application status in real-time
+- ✅ Withdraw pending applications before acceptance
+- ✅ Portfolio management with work samples
+- ✅ Showcase work photos and project details
+- ✅ Receive ratings & reviews from clients
+- ✅ Earnings tracking and payment history
+- ✅ Real-time messaging with potential clients
 - ✅ **Edit Profile** - Update personal information, skills, contact details
 - ✅ **Profile Management** - Complete profile customization
+- ✅ **Location Services** - GPS-based job search and location updates
+- ✅ **File Upload** - Upload work samples and certificates
 
 ### 🔧 **Administrators**
-- ✅ User management
-- ✅ Content moderation
-- ✅ System analytics
-- ✅ Security monitoring
-- ✅ **User Administration** - Manage all user accounts
+- ✅ User management and account oversight
+- ✅ Content moderation and quality control
+- ✅ System analytics and performance monitoring
+- ✅ Security monitoring and threat detection
+- ✅ **User Administration** - Manage all user accounts and permissions
 - ✅ **System Settings** - Configure application parameters
 - ✅ **Analytics Dashboard** - Comprehensive system insights
 - ✅ **Security Monitoring** - Track and manage security events
+- ✅ **Job Moderation** - Review and approve job postings
+- ✅ **Report Generation** - Generate detailed system reports
 
 ---
 
@@ -250,11 +280,13 @@ D_Labour_Chowk/
 
 ## ⚡ Performance Features
 
-- **🗄️ Smart Caching**: Database query caching
+- **🗄️ Smart Caching**: Database query caching with TTL
 - **🖼️ Image Optimization**: Automatic compression & resizing
 - **📱 Lazy Loading**: Deferred resource loading
 - **🗜️ Code Minification**: CSS/JS optimization
 - **📊 Performance Monitoring**: Built-in metrics tracking
+- **🔄 Auto-refresh**: Dashboard updates without manual refresh
+- **📊 Database Optimization**: Indexed queries and connection pooling
 
 ---
 
@@ -299,6 +331,48 @@ POST /Shared/sign_up.php
 }
 ```
 
+### Messaging API
+
+```php
+// Get conversations
+GET /Shared/messaging_service.php?action=get_conversations
+
+// Get messages
+GET /Shared/messaging_service.php?action=get_messages&conversation_id=123
+
+// Send message
+POST /Shared/messaging_service.php?action=send_message
+{
+    "conversation_id": "123",
+    "message": "Hello, I'm interested in your job posting"
+}
+
+// Start conversation
+POST /Shared/messaging_service.php?action=start_conversation
+{
+    "participant_2": "456",
+    "job_post_id": "789"
+}
+```
+
+### Location Services API
+
+```php
+// Update user location
+POST /Shared/location_service.php?action=update_location
+{
+    "latitude": "22.7196",
+    "longitude": "75.8577",
+    "location_name": "Indore, Madhya Pradesh"
+}
+
+// Find nearby workers
+GET /Shared/location_service.php?action=find_workers&lat=22.7196&lng=75.8577&radius=10&skill=carpenter
+
+// Find nearby jobs
+GET /Shared/location_service.php?action=find_jobs&lat=22.7196&lng=75.8577&radius=15&skill=electrician
+```
+
 ### Profile Management Endpoints
 
 ```php
@@ -327,7 +401,10 @@ POST /Labour/profile.php
 
 ```php
 // Advanced Worker Search
-GET /client_/advanced_search.php?work_type=carpenter&city=indore&min_salary=3000
+GET /client_/advanced_search.php?work_type=carpenter&city=indore&min_salary=3000&max_distance=10
+
+// Job Search for Workers
+GET /Labour/postL.php?work_type=plumber&min_salary=2500&city=mumbai
 ```
 
 ### Admin API Endpoints
@@ -369,6 +446,14 @@ define('MAX_IMAGE_HEIGHT', 800);
 define('IMAGE_QUALITY', 85);
 ```
 
+### Location Settings
+```php
+// Location service configuration
+define('DEFAULT_SEARCH_RADIUS', 10); // km
+define('MAX_SEARCH_RADIUS', 50); // km
+define('LOCATION_UPDATE_INTERVAL', 300); // seconds
+```
+
 ---
 
 ## 🐛 Troubleshooting
@@ -386,6 +471,8 @@ define('IMAGE_QUALITY', 85);
 | **Session Start Warnings** | ✅ **FIXED** - Proper session initialization |
 | **Profile Editing Not Working** | ✅ **FIXED** - Complete profile editing functionality |
 | **Admin Features Missing** | ✅ **FIXED** - Full admin dashboard implemented |
+| **Location Services Not Working** | Check GPS permissions, browser location access |
+| **Messaging Not Loading** | Check JavaScript console for errors, ensure WebSocket connection |
 
 ### Debug Mode
 ```php
@@ -397,7 +484,19 @@ define('DEVELOPMENT_MODE', true);
 
 ## 🔄 Updates & Changelog
 
-### Version 2.1 (Latest - September 2025)
+### Version 2.2 (Latest - September 2025)
+- ✅ **ENHANCED**: Real-time messaging system between clients and workers
+- ✅ **ADDED**: GPS-based location services with distance calculations
+- ✅ **IMPROVED**: Advanced search with location-based filtering
+- ✅ **ENHANCED**: Notification system with toast alerts and real-time updates
+- ✅ **ADDED**: Application withdrawal functionality for workers
+- ✅ **IMPROVED**: File upload system with security enhancements
+- ✅ **ENHANCED**: Work portfolio management with image uploads
+- ✅ **ADDED**: Auto-refresh functionality for dashboards
+- ✅ **IMPROVED**: Mobile responsiveness and user experience
+- ✅ **ENHANCED**: Analytics dashboards for all user types
+
+### Version 2.1 (Previous)
 - ✅ **FIXED**: CSP Font Loading Errors - Bootstrap Icons now load properly
 - ✅ **FIXED**: Registration Form Issues - Complete validation overhaul
 - ✅ **FIXED**: Session Start Warnings - Proper session initialization
@@ -407,7 +506,7 @@ define('DEVELOPMENT_MODE', true);
 - ✅ **OPTIMIZED**: Form Validation - Progressive validation approach
 - ✅ **SECURITY**: Enhanced CSRF Protection - Improved token validation
 
-### Version 2.0 (Previous)
+### Version 2.0
 - ✨ Complete UI/UX redesign
 - 🔐 Enhanced security features
 - ⚡ Performance optimizations
@@ -443,11 +542,14 @@ define('DEVELOPMENT_MODE', true);
 ### 📊 **Database Schema**
 
 - **users** - User accounts (clients, workers, admins)
-- **labour_posts** - Worker profiles and skills
-- **user_posts** - Job postings and requirements  
-- **applications** - Job applications and hiring pipeline
+- **lab_post** - Worker profiles and skills
+- **job_post** - Job postings and requirements
+- **job_applications** - Job applications and hiring pipeline
 - **ratings** - Reviews and feedback system
 - **work_posts** - Worker portfolio and work samples
+- **conversations** - Messaging conversations
+- **messages** - Individual messages in conversations
+- **user_location** - GPS location data for users
 - **analytics** - System metrics and performance data
 
 ### 🔌 **API Structure**
@@ -701,6 +803,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Chart.js** - Beautiful charts and analytics
 - **Font Awesome** - Icon library
 - **PHP Community** - Excellent documentation
+- **OpenStreetMap** - Location services integration
 
 ---
 
@@ -712,21 +815,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 🎉 **Current Status - Version 2.1 (September 2025)**
+## 🎉 **Current Status - Version 2.2 (September 2025)**
 
-### ✅ **Recently Fixed Issues**
-- 🔧 **CSP Font Loading** - Bootstrap Icons now load without errors
-- 🔧 **Registration System** - Complete form validation and submission fixes
-- 🔧 **Session Management** - Eliminated session_start() warnings
-- 🔧 **Profile Editing** - Full profile management for all user types
-- 🔧 **Admin Features** - Complete admin dashboard implementation
+### ✅ **Recently Added Features**
+- 💬 **Real-time Messaging** - Instant communication between clients and workers
+- 📍 **GPS Location Services** - Smart location-based search and matching
+- 🔔 **Enhanced Notifications** - Toast alerts and real-time updates
+- 📤 **Application Withdrawal** - Workers can withdraw pending applications
+- 📁 **Advanced File Upload** - Secure document and image management
+- 🔄 **Auto-refresh Dashboards** - Live data updates without manual refresh
 
 ### 🚀 **Key Improvements**
 - **Enhanced Security** - Improved CSRF protection and session handling
 - **Better UX** - Progressive validation and clear error messages
-- **Admin Panel** - Comprehensive user and system management
-- **Profile Management** - Complete editing functionality for all users
-- **Error Handling** - Robust database error management
+- **Mobile Optimization** - Improved responsiveness across all devices
+- **Performance Boost** - Faster load times and better caching
+- **Location Intelligence** - GPS-based smart matching algorithms
 
 ### 📊 **System Health**
 - ✅ **Zero Critical Errors**
@@ -743,6 +847,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 *Connecting skilled workers with opportunities across India* 🇮🇳
 
-**Version 2.1 - Enterprise Grade Digital Labour Marketplace**
+**Version 2.2 - Enterprise Grade Digital Labour Marketplace**
 
 </div>
