@@ -27,8 +27,10 @@ RUN composer install --no-dev --optimize-autoloader
 # Copy application code
 COPY . .
 
-# Set proper permissions
-RUN chown -R www-data:www-data /var/www/html \
+# Create necessary directories and set proper permissions
+RUN mkdir -p /var/www/html/Shared/uploads \
+    && mkdir -p /var/www/html/cache \
+    && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 777 /var/www/html/Shared/uploads \
     && chmod -R 777 /var/www/html/cache
