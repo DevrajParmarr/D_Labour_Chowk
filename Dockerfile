@@ -35,8 +35,8 @@ RUN mkdir -p /var/www/html/Shared/uploads \
     && chmod -R 777 /var/www/html/Shared/uploads \
     && chmod -R 777 /var/www/html/cache
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Enable Apache modules
+RUN a2enmod rewrite headers
 
 # Configure Apache
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
