@@ -1,0 +1,26 @@
+{
+    frankenphp
+}
+
+# Handle PHP files
+*.php {
+    try_files {path} {path}/index.php
+    php
+}
+
+# Handle static files
+*.html *.css *.js *.png *.jpg *.jpeg *.gif *.svg *.ico *.webp {
+    try_files {path}
+    file_server
+}
+
+# Main route - serve index.php for root
+/ {
+    try_files /index.php
+    php
+}
+
+# Fallback to file server
+{
+    file_server
+}
