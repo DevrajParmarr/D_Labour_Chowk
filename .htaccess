@@ -1,10 +1,31 @@
 # Enable URL rewriting
 RewriteEngine On
 
+# Set base directory for proper routing
+RewriteBase /
+
 # Handle PHP files without .php extension
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}.php -f
 RewriteRule ^(.*)$ $1.php [L]
+
+# Route client requests
+RewriteRule ^client/(.*)$ src/Controllers/Client/$1 [L,QSA]
+RewriteRule ^labour/(.*)$ src/Controllers/Labour/$1 [L,QSA]
+RewriteRule ^admin/(.*)$ src/Controllers/Admin/$1 [L,QSA]
+
+# Route API requests
+RewriteRule ^api/(.*)$ src/Controllers/api/$1 [L,QSA]
+
+# Route shared/auth requests
+RewriteRule ^auth/(.*)$ src/Controllers/$1 [L,QSA]
+RewriteRule ^shared/(.*)$ src/Controllers/$1 [L,QSA]
+
+# Route asset requests
+RewriteRule ^css/(.*)$ public/css/$1 [L]
+RewriteRule ^js/(.*)$ public/js/$1 [L]
+RewriteRule ^images/(.*)$ public/images/$1 [L]
+RewriteRule ^uploads/(.*)$ public/uploads/$1 [L]
 
 # Security headers
 Header always set X-Content-Type-Options nosniff
@@ -12,18 +33,17 @@ Header always set X-Frame-Options DENY
 Header always set X-XSS-Protection "1; mode=block"
 Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
-# Prevent access to sensitive files
+# Prevent access to sensitive files and directories
+<FilesMatch "\.(htaccess|htpasswd|ini|log|sh|inc|bak|sql)$">
+    Require all denied
+</FilesMatch>
+
 <Files "config.php">
     Require all denied
 </Files>
 
-<Files "*.sql">
-    Require all denied
-</Files>
-
-<Files "*.log">
-    Require all denied
-</Files>
+# Protect sensitive directories
+RewriteRule ^(config|src|database|docs)/ - [F,L]
 
 # Enable compression
 <IfModule mod_deflate.c>
@@ -36,6 +56,7 @@ Header always set Referrer-Policy "strict-origin-when-cross-origin"
     AddOutputFilterByType DEFLATE application/rss+xml
     AddOutputFilterByType DEFLATE application/javascript
     AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
 </IfModule>
 
 # Cache static resources
@@ -45,6 +66,7 @@ Header always set Referrer-Policy "strict-origin-when-cross-origin"
     ExpiresByType image/jpeg "access plus 1 month"
     ExpiresByType image/gif "access plus 1 month"
     ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
     ExpiresByType text/css "access plus 1 month"
     ExpiresByType application/pdf "access plus 1 month"
     ExpiresByType text/javascript "access plus 1 month"
@@ -52,6 +74,7 @@ Header always set Referrer-Policy "strict-origin-when-cross-origin"
     ExpiresByType application/x-javascript "access plus 1 month"
     ExpiresByType application/x-shockwave-flash "access plus 1 month"
     ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
     ExpiresDefault "access plus 2 days"
 </IfModule>
 
@@ -66,3 +89,8 @@ php_value upload_max_filesize 10M
 php_value post_max_size 10M
 php_value memory_limit 256M
 php_value max_execution_time 300
+php_value max_input_vars 3000
+
+# Handle 404 errors
+ErrorDocument 404 /src/Views/404.html
+ErrorDocument 403 /src/Views/403.html
