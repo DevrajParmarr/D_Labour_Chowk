@@ -24,7 +24,7 @@ $analytics['users'] = $conn->query("
         COUNT(CASE WHEN user_type = 'Labour' THEN 1 END) as workers,
         COUNT(CASE WHEN user_type = 'Admin' THEN 1 END) as admins,
         COUNT(*) as verified_users,
-        COUNT(CASE WHEN date_created >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_users_30d
+        COUNT(CASE WHEN date_created >= NOW() - INTERVAL '30 days' THEN 1 END) as new_users_30d
     FROM user
 ")->fetch_assoc();
 
@@ -34,7 +34,7 @@ $analytics['jobs'] = $conn->query("
         COUNT(*) as total_jobs,
         COUNT(*) as active_jobs,
         COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_jobs,
-        COUNT(CASE WHEN createdDate >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_jobs_30d,
+        COUNT(CASE WHEN createdDate >= NOW() - INTERVAL '30 days' THEN 1 END) as new_jobs_30d,
         AVG(salary) as avg_salary,
         MAX(salary) as max_salary,
         MIN(salary) as min_salary
@@ -47,7 +47,7 @@ $analytics['applications'] = $conn->query("
         COUNT(*) as total_applications,
         COUNT(CASE WHEN status = 'accepted' THEN 1 END) as accepted_applications,
         COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_applications,
-        COUNT(CASE WHEN applied_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_applications_30d
+        COUNT(CASE WHEN applied_at >= NOW() - INTERVAL '30 days' THEN 1 END) as new_applications_30d
     FROM job_applications
 ")->fetch_assoc();
 
@@ -55,7 +55,7 @@ $analytics['applications'] = $conn->query("
 $analytics['hires'] = $conn->query("
     SELECT
         COUNT(*) as total_hires,
-        COUNT(CASE WHEN hire_id >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_hires_30d
+        COUNT(CASE WHEN hire_date >= NOW() - INTERVAL '30 days' THEN 1 END) as new_hires_30d
     FROM hires
 ")->fetch_assoc();
 
@@ -83,8 +83,8 @@ $analytics['monthly_growth'] = $conn->query("
         DATE_FORMAT(date_created, '%Y-%m') as month,
         COUNT(*) as user_count
     FROM user
-    WHERE date_created >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-    GROUP BY DATE_FORMAT(date_created, '%Y-%m')
+    WHERE date_created >= NOW() - INTERVAL '12 months'
+    GROUP BY TO_CHAR(date_created, 'YYYY-MM')
     ORDER BY month
 ")->fetch_all(MYSQLI_ASSOC);
 

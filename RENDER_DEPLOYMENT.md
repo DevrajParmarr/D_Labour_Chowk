@@ -13,14 +13,45 @@ This guide will help you deploy D Labour Chowk to **Render** - a modern cloud pl
 
 ## 🛠️ Step-by-Step Render Deployment
 
-### Step 1: Create Render Account
+### Option 1: Blueprint Deployment (Recommended)
+
+#### Step 1: Create Render Account
 ```bash
 # Go to https://render.com
 # Sign up with GitHub account
 # Verify your email
 ```
 
-### Step 2: Connect GitHub Repository
+#### Step 2: Connect GitHub Repository
+```bash
+# In Render dashboard:
+# Click "New" → "Blueprint"
+# Choose "Connect GitHub"
+# Authorize Render to access your repositories
+# Select your "D_Labour_Chowk" repository
+```
+
+#### Step 3: Deploy Blueprint
+```bash
+# Click "Create Blueprint"
+# Render will automatically:
+# - Read render.yaml configuration
+# - Create PostgreSQL database
+# - Create web service with Docker
+# - Link database to web service
+# - Deploy the application
+```
+
+### Option 2: Manual Deployment
+
+#### Step 1: Create Render Account
+```bash
+# Go to https://render.com
+# Sign up with GitHub account
+# Verify your email
+```
+
+#### Step 2: Connect GitHub Repository
 ```bash
 # In Render dashboard:
 # Click "New" → "Web Service"
@@ -29,16 +60,15 @@ This guide will help you deploy D Labour Chowk to **Render** - a modern cloud pl
 # Select your "D_Labour_Chowk" repository
 ```
 
-### Step 3: Configure Web Service
+#### Step 3: Configure Web Service
 ```yaml
 # Service Configuration:
 Name: dlabour-chowk
-Runtime: PHP
-Build Command: composer install --no-dev --optimize-autoloader
-Start Command: php -S 0.0.0.0:$PORT -t .
+Runtime: Docker
+Dockerfile Path: ./Dockerfile
 ```
 
-### Step 4: Create PostgreSQL Database
+#### Step 4: Create PostgreSQL Database
 ```bash
 # In Render dashboard:
 # Click "New" → "PostgreSQL"
@@ -47,42 +77,37 @@ Start Command: php -S 0.0.0.0:$PORT -t .
 # Region: Any (closest to your users)
 ```
 
-### Step 5: Link Database to Web Service
+#### Step 5: Link Database to Web Service
 ```bash
 # In your web service settings:
 # Go to "Environment"
-# The DATABASE_URL will be automatically added
-# No manual configuration needed!
+# Add DATABASE_URL from PostgreSQL service
 ```
 
-### Step 6: Deploy
+#### Step 6: Deploy
 ```bash
 # Click "Create Web Service"
-# Render will automatically:
-# - Clone your repository
-# - Install PHP dependencies
-# - Build the application
-# - Start the web server
+# Render will automatically build and deploy
 ```
 
 ## 📊 Database Setup
 
-### Option 1: Convert MySQL Schema to PostgreSQL
-```sql
--- Convert your d_labour.sql to PostgreSQL format
--- Main changes needed:
--- 1. AUTO_INCREMENT → SERIAL
--- 2. ENGINE=InnoDB → (remove)
--- 3. Backticks ` → double quotes "
--- 4. Some data types may need adjustment
-```
+### PostgreSQL Schema (Automatic)
+The `render.yaml` blueprint automatically creates a PostgreSQL database and the schema is defined in `database/d_labour_postgres.sql`.
 
-### Option 2: Use MySQL Add-on (Paid)
-```bash
-# In Render dashboard:
-# Add MySQL add-on ($7/month)
-# Update DATABASE_URL in environment variables
-```
+### Manual Database Setup
+If deploying manually, after creating the PostgreSQL database:
+
+1. **Connect to Database**: Use Render's database connection details
+2. **Run Schema**: Execute the SQL from `database/d_labour_postgres.sql`
+3. **Verify Connection**: Check that the web app can connect
+
+### Schema Conversion Notes
+- `AUTO_INCREMENT` → `SERIAL`
+- `ENGINE=InnoDB` → Removed
+- Backticks `` ` `` → Double quotes `"`
+- `ENUM` → `VARCHAR` with `CHECK` constraint
+- Foreign keys maintained with proper references
 
 ## 🔧 Environment Variables
 

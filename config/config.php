@@ -4,25 +4,35 @@
  * This file contains database connection settings
  */
 
-// Database Configuration - Railway optimized
-// Railway provides these environment variables for MySQL
-define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'localhost');
-define('DB_USERNAME', getenv('MYSQLUSER') ?: getenv('DB_USERNAME') ?: 'root');
-define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '');
-define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'd_labour');
-define('DB_PORT', getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: 3306);
-define('DB_TYPE', 'mysql');
-
-// Alternative: If Railway provides DATABASE_URL (for PostgreSQL)
+// Database Configuration - Render optimized
+// Check for Render's DATABASE_URL first (PostgreSQL)
 $database_url = getenv('DATABASE_URL');
-if ($database_url && strpos($database_url, 'postgres') !== false) {
-    $db_url = parse_url($database_url);
-    define('DB_HOST', $db_url['host']);
-    define('DB_USERNAME', $db_url['user']);
-    define('DB_PASSWORD', $db_url['pass']);
-    define('DB_NAME', ltrim($db_url['path'], '/'));
-    define('DB_PORT', $db_url['port'] ?: 5432);
-    define('DB_TYPE', 'pgsql');
+if ($database_url) {
+    if (strpos($database_url, 'postgres') !== false) {
+        $db_url = parse_url($database_url);
+        define('DB_HOST', $db_url['host']);
+        define('DB_USERNAME', $db_url['user']);
+        define('DB_PASSWORD', $db_url['pass']);
+        define('DB_NAME', ltrim($db_url['path'], '/'));
+        define('DB_PORT', $db_url['port'] ?: 5432);
+        define('DB_TYPE', 'pgsql');
+    } elseif (strpos($database_url, 'mysql') !== false) {
+        $db_url = parse_url($database_url);
+        define('DB_HOST', $db_url['host']);
+        define('DB_USERNAME', $db_url['user']);
+        define('DB_PASSWORD', $db_url['pass']);
+        define('DB_NAME', ltrim($db_url['path'], '/'));
+        define('DB_PORT', $db_url['port'] ?: 3306);
+        define('DB_TYPE', 'mysql');
+    }
+} else {
+    // Fallback to Railway/MySQL environment variables
+    define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'localhost');
+    define('DB_USERNAME', getenv('MYSQLUSER') ?: getenv('DB_USERNAME') ?: 'root');
+    define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '');
+    define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'd_labour');
+    define('DB_PORT', getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: 3306);
+    define('DB_TYPE', 'mysql');
 }
 
 // Application Configuration
@@ -45,37 +55,33 @@ define('CSRF_TOKEN_LENGTH', 32);
 // Development Mode
 define('DEVELOPMENT_MODE', getenv('DEVELOPMENT_MODE') ?: false);
 
-// Error Reporting
-if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-} else {
-    error_reporting(0);
-    ini_set('display_errors', 0);
-}
+// Error Reporting - Enable for debugging deployment issues
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Database Connection Class - Support both MySQL and PostgreSQL
+// Database Connection Class - mysqli-like interface for both MySQL and PostgreSQL
 class Database {
     private static $instance = null;
     private $connection;
+    private $is_pdo = false;
 
     private function __construct() {
         try {
             if (DB_TYPE === 'pgsql') {
-                // PostgreSQL connection
+                // PostgreSQL connection using PDO
                 $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";user=" . DB_USERNAME . ";password=" . DB_PASSWORD;
-                $this->connection = new PDO($dsn);
+                $this->connection = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
                 $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                $this->is_pdo = true;
             } else {
-                // MySQL connection
+                // MySQL connection using mysqli
                 $this->connection = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT);
-
                 if ($this->connection->connect_error) {
                     throw new Exception("Database connection failed: " . $this->connection->connect_error);
                 }
-
-                // Set charset to UTF-8
                 $this->connection->set_charset("utf8");
+                $this->is_pdo = false;
             }
 
         } catch (Exception $e) {
@@ -83,73 +89,155 @@ class Database {
             die("Database connection failed. Please try again later.");
         }
     }
-    
+
+    // Auto-initialize database tables on first run (only in production/Render)
+    if (getenv('RENDER') || getenv('DATABASE_URL')) {
+        try {
+            // Check if we need to initialize
+            if ($this->is_pdo) {
+                $result = $this->connection->query("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user')");
+                $tableExists = $result->fetchColumn();
+            } else {
+                $result = $this->connection->query("SHOW TABLES LIKE 'user'");
+                $tableExists = $result->num_rows > 0;
+            }
+
+            if (!$tableExists) {
+                // Run setup script
+                require_once '../Shared/setup_database.php';
+            }
+        } catch (Exception $e) {
+            error_log("Database initialization check failed: " . $e->getMessage());
+            // Don't die here, let the app try to run
+        }
+    }
+
     public static function getInstance() {
         if (self::$instance === null) {
             self::$instance = new self();
         }
         return self::$instance;
     }
-    
+
     public function getConnection() {
         return $this->connection;
     }
-    
+
     public function escape($string) {
-        return $this->connection->real_escape_string($string);
-    }
-    
-    public function query($sql) {
-        if (DB_TYPE === 'pgsql') {
-            try {
-                $stmt = $this->connection->query($sql);
-                return $stmt;
-            } catch (Exception $e) {
-                error_log("SQL Error: " . $e->getMessage() . " Query: " . $sql);
-                return false;
-            }
+        if ($this->is_pdo) {
+            return substr($this->connection->quote($string), 1, -1); // Remove quotes from PDO quote
         } else {
-            $result = $this->connection->query($sql);
-            if (!$result) {
-                error_log("SQL Error: " . $this->connection->error . " Query: " . $sql);
+            return $this->connection->real_escape_string($string);
+        }
+    }
+
+    public function query($sql, $params = []) {
+        try {
+            if ($this->is_pdo) {
+                $stmt = $this->connection->prepare($sql);
+                $stmt->execute($params);
+                return new PDOResultWrapper($stmt);
+            } else {
+                if (!empty($params)) {
+                    $stmt = $this->connection->prepare($sql);
+                    if ($stmt) {
+                        $types = str_repeat('s', count($params));
+                        $stmt->bind_param($types, ...$params);
+                        $stmt->execute();
+                        return $stmt->get_result();
+                    }
+                    return false;
+                } else {
+                    return $this->connection->query($sql);
+                }
             }
-            return $result;
+        } catch (Exception $e) {
+            error_log("SQL Error: " . $e->getMessage() . " Query: " . $sql);
+            return false;
         }
     }
 
     public function prepare($sql) {
-        if (DB_TYPE === 'pgsql') {
-            try {
-                $stmt = $this->connection->prepare($sql);
-                return $stmt;
-            } catch (Exception $e) {
-                error_log("Prepare Error: " . $e->getMessage() . " Query: " . $sql);
-                return false;
+        try {
+            if ($this->is_pdo) {
+                return $this->connection->prepare($sql);
+            } else {
+                return $this->connection->prepare($sql);
             }
-        } else {
-            $stmt = $this->connection->prepare($sql);
-            if (!$stmt) {
-                error_log("Prepare Error: " . $this->connection->error . " Query: " . $sql);
-            }
-            return $stmt;
+        } catch (Exception $e) {
+            error_log("Prepare Error: " . $e->getMessage() . " Query: " . $sql);
+            return false;
         }
     }
 
     public function getLastInsertId() {
-        if (DB_TYPE === 'pgsql') {
+        if ($this->is_pdo) {
             return $this->connection->lastInsertId();
         } else {
             return $this->connection->insert_id;
         }
     }
 
-    public function getAffectedRows() {
-        if (DB_TYPE === 'pgsql') {
-            // For PostgreSQL, we need to use rowCount() on the statement
-            return null; // Will be handled by individual queries
+    public function getAffectedRows($stmt = null) {
+        if ($this->is_pdo) {
+            return $stmt ? $stmt->rowCount() : null;
         } else {
             return $this->connection->affected_rows;
         }
+    }
+
+    // mysqli-like methods for compatibility
+    public function real_escape_string($string) {
+        return $this->escape($string);
+    }
+
+    public function set_charset($charset) {
+        if (!$this->is_pdo) {
+            return $this->connection->set_charset($charset);
+        }
+        return true;
+    }
+
+    public function connect_error() {
+        if (!$this->is_pdo) {
+            return $this->connection->connect_error;
+        }
+        return null;
+    }
+
+    public function insert_id() {
+        return $this->getLastInsertId();
+    }
+
+    public function affected_rows() {
+        return $this->getAffectedRows();
+    }
+}
+
+// PDO Result Wrapper to mimic mysqli result
+class PDOResultWrapper {
+    private $stmt;
+    private $currentRow = 0;
+    private $rows = [];
+
+    public function __construct($stmt) {
+        $this->stmt = $stmt;
+        $this->rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function fetch_assoc() {
+        if ($this->currentRow < count($this->rows)) {
+            return $this->rows[$this->currentRow++];
+        }
+        return null;
+    }
+
+    public function num_rows() {
+        return count($this->rows);
+    }
+
+    public function fetch_all($mode = MYSQLI_ASSOC) {
+        return $this->rows;
     }
 }
 

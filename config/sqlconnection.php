@@ -8,11 +8,9 @@
 require_once 'config.php';
 
 // Get database connection using the singleton pattern
-$conn = Database::getInstance()->getConnection();
+$db = Database::getInstance();
+$conn = $db->getConnection();
 
-// Check connection
-if ($conn->connect_error) {
-    error_log("Database connection failed: " . $conn->connect_error);
-    die("Database connection failed. Please try again later.");
-}
+// Connection is already validated in Database class constructor
+// No additional checks needed here
 ?>
