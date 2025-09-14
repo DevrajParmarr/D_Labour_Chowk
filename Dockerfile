@@ -41,6 +41,9 @@ RUN a2enmod rewrite headers
 # Configure Apache
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
+# Configure Apache to listen on PORT if set, otherwise 80
+RUN echo 'Listen ${PORT:-80}' > /etc/apache2/ports.conf
+
 # Expose port 80
 EXPOSE 80
 
