@@ -28,11 +28,25 @@ try {
         if (file_exists($schemaPath)) {
             $schema = file_get_contents($schemaPath);
 
-            // Split into individual statements
-            $statements = array_filter(array_map('trim', explode(';', $schema)));
+            // Split into individual statements (handle PostgreSQL syntax)
+            $statements = [];
+            $lines = explode("\n", $schema);
+            $currentStatement = '';
+
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (empty($line) || strpos($line, '--') === 0) continue;
+
+                $currentStatement .= $line . ' ';
+
+                if (substr($line, -1) === ';') {
+                    $statements[] = trim($currentStatement);
+                    $currentStatement = '';
+                }
+            }
 
             foreach ($statements as $statement) {
-                if (!empty($statement) && !preg_match('/^--/', $statement)) {
+                if (!empty($statement)) {
                     try {
                         $db->exec($statement);
                         if ($debug) echo "Executed: " . substr($statement, 0, 50) . "...\n";

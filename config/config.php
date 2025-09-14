@@ -55,14 +55,9 @@ define('CSRF_TOKEN_LENGTH', 32);
 // Development Mode
 define('DEVELOPMENT_MODE', getenv('DEVELOPMENT_MODE') ?: false);
 
-// Error Reporting
-if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-} else {
-    error_reporting(0);
-    ini_set('display_errors', 0);
-}
+// Error Reporting - Enable for debugging deployment issues
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 // Database Connection Class - Unified PDO for both MySQL and PostgreSQL
 class Database {

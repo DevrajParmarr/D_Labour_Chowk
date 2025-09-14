@@ -6,15 +6,6 @@
  * It handles routing and initializes the application.
  */
 
-// Include configuration with error handling
-try {
-    require_once 'config/config.php';
-} catch (Exception $e) {
-    // If config fails, redirect to landing page
-    header('Location: Shared/index.html');
-    exit();
-}
-
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -22,7 +13,15 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Simple routing based on user type and request
 if (isset($_SESSION['user_id'])) {
-    // User is logged in
+    // User is logged in - try to include config for database
+    try {
+        require_once 'config/config.php';
+    } catch (Exception $e) {
+        // If config fails, redirect to landing page
+        header('Location: Shared/index.html');
+        exit();
+    }
+
     if ($_SESSION['user_type'] === 'User') {
         // Client/Employer
         header('Location: client_/dashboard.php');
@@ -35,7 +34,7 @@ if (isset($_SESSION['user_id'])) {
     }
     exit();
 } else {
-    // User not logged in - show landing page
+    // User not logged in - show landing page without database
     header('Location: Shared/index.html');
     exit();
 }
