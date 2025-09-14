@@ -11,18 +11,6 @@ require_once 'config.php';
 $db = Database::getInstance();
 $conn = $db->getConnection();
 
-// Check connection based on database type
-if (DB_TYPE === 'pgsql') {
-    // For PostgreSQL (PDO), check if connection is null
-    if (!$conn) {
-        error_log("Database connection failed: PDO connection is null");
-        die("Database connection failed. Please try again later.");
-    }
-} else {
-    // For MySQL (mysqli), check connect_error
-    if ($conn->connect_error) {
-        error_log("Database connection failed: " . $conn->connect_error);
-        die("Database connection failed. Please try again later.");
-    }
-}
+// Connection is already validated in Database class constructor
+// No additional checks needed here
 ?>
