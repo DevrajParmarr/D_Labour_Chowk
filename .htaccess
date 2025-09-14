@@ -24,11 +24,8 @@ php_value memory_limit 256M
 php_value max_execution_time 300
 php_value max_input_vars 3000
 
-# Force HTTPS on Railway
-RewriteEngine On
-RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# HTTPS is handled automatically by Render
+# No need for manual redirect
 
 # Handle PHP files without .php extension (for Railway's PHP server)
 RewriteCond %{REQUEST_FILENAME} !-d

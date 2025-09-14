@@ -89,6 +89,23 @@ class Database {
         }
     }
 
+    // Auto-initialize database tables on first run (only in production/Render)
+    if (getenv('RENDER') || getenv('DATABASE_URL')) {
+        try {
+            // Check if we need to initialize
+            $result = $this->connection->query("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user')");
+            $tableExists = $result->fetchColumn();
+
+            if (!$tableExists) {
+                // Run setup script
+                require_once '../Shared/setup_database.php';
+            }
+        } catch (Exception $e) {
+            error_log("Database initialization check failed: " . $e->getMessage());
+            // Don't die here, let the app try to run
+        }
+    }
+
     public static function getInstance() {
         if (self::$instance === null) {
             self::$instance = new self();
