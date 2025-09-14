@@ -41,11 +41,20 @@ RUN a2enmod rewrite headers
 # Configure Apache
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Configure Apache to listen on PORT if set, otherwise 80
-RUN echo 'Listen ${PORT:-80}' > /etc/apache2/ports.conf
-
 # Expose port 80
 EXPOSE 80
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Create startup script to configure Apache port
+RUN echo '#!/bin/bash\n\
+if [ -n "$PORT" ]; then\n\
+    echo "Listen $PORT" > /etc/apache2/ports.conf\n\
+    echo "Setting Apache to listen on port $PORT"\n\
+else\n\
+    echo "Listen 80" > /etc/apache2/ports.conf\n\
+    echo "Setting Apache to listen on port 80"\n\
+fi\n\
+apache2-foreground' > /usr/local/bin/start-apache.sh && \
+chmod +x /usr/local/bin/start-apache.sh
+
+# Start Apache with port configuration
+CMD ["/usr/local/bin/start-apache.sh"]
