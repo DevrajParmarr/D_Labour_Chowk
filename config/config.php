@@ -90,28 +90,6 @@ class Database {
         }
     }
 
-    // Auto-initialize database tables on first run (only in production/Render)
-    if (getenv('RENDER') || getenv('DATABASE_URL')) {
-        try {
-            // Check if we need to initialize
-            if ($this->is_pdo) {
-                $result = $this->connection->query("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user')");
-                $tableExists = $result->fetchColumn();
-            } else {
-                $result = $this->connection->query("SHOW TABLES LIKE 'user'");
-                $tableExists = $result->num_rows > 0;
-            }
-
-            if (!$tableExists) {
-                // Run setup script
-                require_once '../Shared/setup_database.php';
-            }
-        } catch (Exception $e) {
-            error_log("Database initialization check failed: " . $e->getMessage());
-            // Don't die here, let the app try to run
-        }
-    }
-
     public static function getInstance() {
         if (self::$instance === null) {
             self::$instance = new self();
@@ -211,6 +189,29 @@ class Database {
 
     public function affected_rows() {
         return $this->getAffectedRows();
+    }
+}
+
+// Auto-initialize database tables on first run (only in production/Render)
+if (getenv('RENDER') || getenv('DATABASE_URL')) {
+    try {
+        $db = Database::getInstance()->getConnection();
+        // Check if we need to initialize
+        if (DB_TYPE === 'pgsql') {
+            $result = $db->query("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user')");
+            $tableExists = $result->fetchColumn();
+        } else {
+            $result = $db->query("SHOW TABLES LIKE 'user'");
+            $tableExists = $result->num_rows > 0;
+        }
+
+        if (!$tableExists) {
+            // Run setup script
+            require_once '../Shared/setup_database.php';
+        }
+    } catch (Exception $e) {
+        error_log("Database initialization check failed: " . $e->getMessage());
+        // Don't die here, let the app try to run
     }
 }
 
