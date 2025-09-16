@@ -1,6 +1,6 @@
 <?php
 // Combined secure registration logic with email verification and user feedback
-require_once 'config.php';
+require_once '../config/config.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;

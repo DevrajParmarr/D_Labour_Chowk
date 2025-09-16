@@ -1,8 +1,8 @@
 <?php
- 
+
 print_r($_POST);
 
-require_once 'config.php';
+require_once '../config/config.php';
 $connec = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
 
 if ($connec->connect_error) {

@@ -4,7 +4,7 @@
  * Allows users to set a new password using the reset token
  */
 
-require_once 'config.php';
+require_once '../config/config.php';
 session_start();
 
 $token = isset($_GET['token']) ? trim($_GET['token']) : '';

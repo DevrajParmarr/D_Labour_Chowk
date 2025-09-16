@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once '../config/config.php';
 require_once 'notification_system.php';
 require_once 'form_validator.php';
 

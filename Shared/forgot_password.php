@@ -4,7 +4,7 @@
  * Handles password reset requests securely
  */
 
-require_once 'config.php';
+require_once '../config/config.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;

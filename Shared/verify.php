@@ -4,7 +4,7 @@
  * Secure email verification with proper validation and database security
  */
 
-require_once 'config.php';
+require_once '../config/config.php';
 session_start();
 
 if (isset($_GET['email']) && isset($_GET['vcode'])) {

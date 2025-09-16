@@ -1,6 +1,6 @@
 <?php
 // Secure login processing script
-require_once 'config.php';
+require_once '../config/config.php';
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
