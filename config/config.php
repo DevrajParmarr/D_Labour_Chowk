@@ -98,7 +98,11 @@ class Database {
     }
 
     public function getConnection() {
-        return $this->connection;
+        if ($this->is_pdo) {
+            return new MysqliWrapper($this->connection);
+        } else {
+            return $this->connection;
+        }
     }
 
     public function escape($string) {
@@ -242,6 +246,113 @@ class PDOResultWrapper {
     }
 }
 
+// Stmt wrapper to mimic mysqli_stmt
+class StmtWrapper {
+    private $stmt;
+
+    public function __construct($stmt) {
+        $this->stmt = $stmt;
+    }
+
+    public function bind_param($types, ...$params) {
+        $i = 0;
+        foreach (str_split($types) as $type) {
+            $param = $params[$i];
+            $pdoType = $this->getPdoType($type);
+            $this->stmt->bindParam($i + 1, $param, $pdoType);
+            $i++;
+        }
+    }
+
+    private function getPdoType($type) {
+        switch ($type) {
+            case 'i': return PDO::PARAM_INT;
+            case 'd': return PDO::PARAM_STR;
+            case 's': return PDO::PARAM_STR;
+            case 'b': return PDO::PARAM_LOB;
+            default: return PDO::PARAM_STR;
+        }
+    }
+
+    public function execute() {
+        return $this->stmt->execute();
+    }
+
+    public function get_result() {
+        $this->execute();
+        return new PDOResultWrapper($this->stmt);
+    }
+
+    public function close() {
+        // PDO stmt doesn't need close
+    }
+
+    public function __call($name, $arguments) {
+        if (method_exists($this->stmt, $name)) {
+            return call_user_func_array([$this->stmt, $name], $arguments);
+        }
+        throw new Exception("Method $name not found");
+    }
+}
+
+// Mysqli-like wrapper for PDO
+class MysqliWrapper {
+    private $pdo;
+
+    public function __construct($pdo) {
+        $this->pdo = $pdo;
+    }
+
+    public function query($sql, $params = []) {
+        try {
+            if (!empty($params)) {
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute($params);
+                return new PDOResultWrapper($stmt);
+            } else {
+                $stmt = $this->pdo->query($sql);
+                return new PDOResultWrapper($stmt);
+            }
+        } catch (Exception $e) {
+            error_log("SQL Error: " . $e->getMessage() . " Query: " . $sql);
+            return false;
+        }
+    }
+
+    public function prepare($sql) {
+        return new StmtWrapper($this->pdo->prepare($sql));
+    }
+
+    public function real_escape_string($string) {
+        return substr($this->pdo->quote($string), 1, -1);
+    }
+
+    public function insert_id() {
+        return $this->pdo->lastInsertId();
+    }
+
+    public function affected_rows() {
+        // Not directly available, return -1
+        return -1;
+    }
+
+    public function set_charset($charset) {
+        // PDO handles charset in DSN
+        return true;
+    }
+
+    public function connect_error() {
+        return null;
+    }
+
+    public function __call($name, $arguments) {
+        if (method_exists($this->pdo, $name)) {
+            return call_user_func_array([$this->pdo, $name], $arguments);
+        }
+        throw new Exception("Method $name not found");
+    }
+}
+
 // Helper Functions
 function getDB() {
     return Database::getInstance()->getConnection();
@@ -279,10 +390,85 @@ function getCurrentUserType() {
     return $_SESSION['user_type'] ?? null;
 }
 
+// Compatibility functions for mysqli-like interface
+if (!function_exists('mysqli_query')) {
+    function mysqli_query($link, $query) {
+        return $link->query($query);
+    }
+}
+
+if (!function_exists('mysqli_prepare')) {
+    function mysqli_prepare($link, $query) {
+        return $link->prepare($query);
+    }
+}
+
+if (!function_exists('mysqli_real_escape_string')) {
+    function mysqli_real_escape_string($link, $string) {
+        return $link->real_escape_string($string);
+    }
+}
+
+if (!function_exists('mysqli_stmt_bind_param')) {
+    function mysqli_stmt_bind_param($stmt, $types, ...$params) {
+        return $stmt->bind_param($types, ...$params);
+    }
+}
+
+if (!function_exists('mysqli_stmt_execute')) {
+    function mysqli_stmt_execute($stmt) {
+        return $stmt->execute();
+    }
+}
+
+if (!function_exists('mysqli_stmt_get_result')) {
+    function mysqli_stmt_get_result($stmt) {
+        return $stmt->get_result();
+    }
+}
+
+if (!function_exists('mysqli_stmt_close')) {
+    function mysqli_stmt_close($stmt) {
+        return $stmt->close();
+    }
+}
+
+if (!function_exists('mysqli_num_rows')) {
+    function mysqli_num_rows($result) {
+        return $result->num_rows();
+    }
+}
+
+if (!function_exists('mysqli_fetch_assoc')) {
+    function mysqli_fetch_assoc($result) {
+        return $result->fetch_assoc();
+    }
+}
+
+if (!function_exists('mysqli_close')) {
+    function mysqli_close($link) {
+        // PDO doesn't need close
+        return true;
+    }
+}
+
+if (!function_exists('mysqli_insert_id')) {
+    function mysqli_insert_id($link) {
+        return $link->insert_id();
+    }
+}
+
+if (!function_exists('mysqli_error')) {
+    function mysqli_error($link) {
+        // PDO error handling is different, return empty for compatibility
+        return '';
+    }
+}
+
 // Initialize session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
-    
+
     // Session timeout check
     if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > SESSION_TIMEOUT)) {
         session_unset();
