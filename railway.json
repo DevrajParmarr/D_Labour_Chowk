@@ -12,6 +12,7 @@
   },
   "variables": {
     "NIXPACKS_PHP_VERSION": "8.2",
+    "NIXPACKS_APT_PKGS": "php8.2-mysqli php8.2-pgsql",
     "PHP_MEMORY_LIMIT": "256M",
     "PHP_MAX_EXECUTION_TIME": "300"
   }
