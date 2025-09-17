@@ -7,7 +7,7 @@ services:
     startCommand: docker run -p $PORT:80 d-labour-chowk
     envVars:
       - key: DB_HOST
-        value: d-labour-db
+        value: your_mysql_host_here  # Replace with the host from the MySQL service dashboard
       - key: DB_USERNAME
         value: d_labour_user
       - key: DB_PASSWORD
