@@ -37,7 +37,8 @@ if (getenv('RENDER_POSTGRESQL_HOST')) {
         }
     } else {
         // Fallback to Railway/MySQL environment variables
-        define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'localhost');
+        $default_host = getenv('RENDER') ? 'd-labour-db' : 'localhost';
+        define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: $default_host);
         define('DB_USERNAME', getenv('MYSQLUSER') ?: getenv('DB_USERNAME') ?: 'root');
         define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '');
         define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'd_labour');
