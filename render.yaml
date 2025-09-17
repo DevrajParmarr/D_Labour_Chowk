@@ -20,12 +20,12 @@ services:
 
   - type: pserv
     name: d-labour-db
-    runtime: postgres
+    runtime: mysql
     plan: free
     envVars:
-      - key: POSTGRES_DB
+      - key: MYSQL_DATABASE
         value: d_labour
-      - key: POSTGRES_USER
+      - key: MYSQL_USER
         value: d_labour_user
-      - key: POSTGRES_PASSWORD
+      - key: MYSQL_PASSWORD
         generateValue: true

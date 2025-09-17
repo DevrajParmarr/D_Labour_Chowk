@@ -10,8 +10,18 @@ try {
     $db = Database::getInstance()->getConnection();
 
     // Check if tables exist
-    $result = $db->query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
-    $existingTables = $result->fetchAll(PDO::FETCH_COLUMN);
+    if (DB_TYPE === 'pgsql') {
+        $result = $db->query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+        $existingTables = $result->fetchAll(PDO::FETCH_COLUMN);
+        $schemaPath = '../database/d_labour_postgres.sql';
+    } else {
+        $result = $db->query("SHOW TABLES");
+        $existingTables = [];
+        while ($row = $result->fetch(PDO::FETCH_NUM)) {
+            $existingTables[] = $row[0];
+        }
+        $schemaPath = '../database/migrations/d_labour.sql';
+    }
 
     $requiredTables = ['user', 'job_post', 'lab_post', 'job_applications', 'hires', 'ratings', 'work_posts'];
 
@@ -23,38 +33,48 @@ try {
 
         if ($debug) echo "Initializing database tables...\n";
 
-        // Read and execute the PostgreSQL schema
-        $schemaPath = '../database/d_labour_postgres.sql';
+        // Read and execute the schema
         if (file_exists($schemaPath)) {
             $schema = file_get_contents($schemaPath);
 
-            // Split into individual statements (handle PostgreSQL syntax)
-            $statements = [];
-            $lines = explode("\n", $schema);
-            $currentStatement = '';
+            if (DB_TYPE === 'pgsql') {
+                // Split into individual statements (handle PostgreSQL syntax)
+                $statements = [];
+                $lines = explode("\n", $schema);
+                $currentStatement = '';
 
-            foreach ($lines as $line) {
-                $line = trim($line);
-                if (empty($line) || strpos($line, '--') === 0) continue;
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if (empty($line) || strpos($line, '--') === 0) continue;
 
-                $currentStatement .= $line . ' ';
+                    $currentStatement .= $line . ' ';
 
-                if (substr($line, -1) === ';') {
-                    $statements[] = trim($currentStatement);
-                    $currentStatement = '';
-                }
-            }
-
-            foreach ($statements as $statement) {
-                if (!empty($statement)) {
-                    try {
-                        $db->exec($statement);
-                        if ($debug) echo "Executed: " . substr($statement, 0, 50) . "...\n";
-                    } catch (Exception $e) {
-                        if ($debug) echo "Error executing statement: " . $e->getMessage() . "\n";
-                        error_log("Schema execution error: " . $e->getMessage() . " Statement: " . substr($statement, 0, 100));
-                        // Continue with other statements
+                    if (substr($line, -1) === ';') {
+                        $statements[] = trim($currentStatement);
+                        $currentStatement = '';
                     }
+                }
+
+                foreach ($statements as $statement) {
+                    if (!empty($statement)) {
+                        try {
+                            $db->exec($statement);
+                            if ($debug) echo "Executed: " . substr($statement, 0, 50) . "...\n";
+                        } catch (Exception $e) {
+                            if ($debug) echo "Error executing statement: " . $e->getMessage() . "\n";
+                            error_log("Schema execution error: " . $e->getMessage() . " Statement: " . substr($statement, 0, 100));
+                            // Continue with other statements
+                        }
+                    }
+                }
+            } else {
+                // For MySQL, execute the entire schema at once
+                try {
+                    $db->exec($schema);
+                    if ($debug) echo "Executed MySQL schema\n";
+                } catch (Exception $e) {
+                    if ($debug) echo "Error executing MySQL schema: " . $e->getMessage() . "\n";
+                    error_log("MySQL schema execution error: " . $e->getMessage());
                 }
             }
 
