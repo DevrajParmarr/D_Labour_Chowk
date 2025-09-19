@@ -1,7 +1,11 @@
 <?php
 // Secure login processing script
 require_once '../config/config.php';
-session_start();
+
+// Session is already started in config.php, no need to start again
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mobile_no = isset($_POST['mobile_no']) ? trim($_POST['mobile_no']) : '';
@@ -29,6 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $db = Database::getInstance();
         $stmt = $db->prepare("SELECT user_ID, user_name, password, user_type, mobile_no FROM user WHERE mobile_no = ?");
+
+        if ($stmt === false) {
+            // Database connection failed
+            $_SESSION['login_error'] = 'Database connection failed. Please try again later.';
+            redirect('login_form.php');
+        }
+
         $stmt->bind_param('s', $mobile_no);
         $stmt->execute();
         $result = $stmt->get_result();

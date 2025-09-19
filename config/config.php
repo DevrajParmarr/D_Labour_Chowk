@@ -26,13 +26,23 @@ if ($database_url) {
         define('DB_TYPE', 'mysql');
     }
 } else {
-    // Fallback to Railway/MySQL environment variables
-    define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'localhost');
-    define('DB_USERNAME', getenv('MYSQLUSER') ?: getenv('DB_USERNAME') ?: 'root');
-    define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '');
-    define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'd_labour');
-    define('DB_PORT', getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: 3306);
-    define('DB_TYPE', 'mysql');
+    // Fallback for Render - use PostgreSQL if RENDER env is set
+    if (getenv('RENDER')) {
+        define('DB_HOST', getenv('RENDER_POSTGRESQL_HOST') ?: 'd-labour-db');
+        define('DB_USERNAME', getenv('RENDER_POSTGRESQL_USER') ?: 'd_labour_user');
+        define('DB_PASSWORD', getenv('RENDER_POSTGRESQL_PASSWORD') ?: ''); // Password from database service
+        define('DB_NAME', getenv('RENDER_POSTGRESQL_DATABASE') ?: 'd_labour');
+        define('DB_PORT', getenv('RENDER_POSTGRESQL_PORT') ?: 5432);
+        define('DB_TYPE', 'pgsql');
+    } else {
+        // Local MySQL fallback
+        define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'localhost');
+        define('DB_USERNAME', getenv('MYSQLUSER') ?: getenv('DB_USERNAME') ?: 'root');
+        define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '');
+        define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'd_labour');
+        define('DB_PORT', getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: 3306);
+        define('DB_TYPE', 'mysql');
+    }
 }
 
 // Application Configuration
@@ -145,6 +155,10 @@ class Database {
     }
 
     public function prepare($sql) {
+        if ($this->connection === null) {
+            error_log("Prepare Error: Database connection is not available. Query: " . $sql);
+            return false;
+        }
         try {
             if ($this->is_pdo) {
                 return $this->connection->prepare($sql);
