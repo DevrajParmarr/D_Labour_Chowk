@@ -1,5 +1,5 @@
 <?php
-require_once '../Shared/config.php';
+require_once '../config/config.php';
 
 // Check if user is logged in and is an admin
 if (!isLoggedIn()) {

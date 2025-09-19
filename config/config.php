@@ -518,13 +518,10 @@ if (!headers_sent()) {
     header("Expires: 0");
 }
 
-?>
-
-<?php
 /**
  * Performance and Security Initialization
  * This section is automatically loaded with config.php
- * 
+ *
  * Features enabled:
  * - Output compression
  * - Caching headers
