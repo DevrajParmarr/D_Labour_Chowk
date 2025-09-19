@@ -4,7 +4,7 @@ services:
     runtime: docker
     plan: free
     buildCommand: docker build -t d-labour-chowk .
-    startCommand: docker run -p $PORT:80 d-labour-chowk
+    startCommand: docker run -p $PORT:10000 d-labour-chowk
     envVars:
       - key: DATABASE_URL
         fromDatabase:
