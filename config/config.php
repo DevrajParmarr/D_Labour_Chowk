@@ -5,55 +5,34 @@
  */
 
 // Database Configuration - Render optimized
-// Check for Render's PostgreSQL environment variables first
-if (getenv('RENDER_POSTGRESQL_HOST')) {
-    define('DB_HOST', getenv('RENDER_POSTGRESQL_HOST'));
-    define('DB_USERNAME', getenv('RENDER_POSTGRESQL_USER'));
-    define('DB_PASSWORD', getenv('RENDER_POSTGRESQL_PASSWORD'));
-    define('DB_NAME', getenv('RENDER_POSTGRESQL_DATABASE'));
-    define('DB_PORT', getenv('RENDER_POSTGRESQL_PORT') ?: 5432);
-    define('DB_TYPE', 'pgsql');
-} else {
-    // Check for Render's DATABASE_URL
-    $database_url = getenv('DATABASE_URL');
-    error_log("DATABASE_URL: " . $database_url);
-    if ($database_url) {
-        if (strpos($database_url, 'postgres') !== false) {
-            $db_url = parse_url($database_url);
-            define('DB_HOST', $db_url['host']);
-            define('DB_USERNAME', $db_url['user']);
-            define('DB_PASSWORD', $db_url['pass']);
-            define('DB_NAME', ltrim($db_url['path'], '/'));
-            define('DB_PORT', $db_url['port'] ?: 5432);
-            define('DB_TYPE', 'pgsql');
-        } elseif (strpos($database_url, 'mysql') !== false) {
-            $db_url = parse_url($database_url);
-            define('DB_HOST', $db_url['host']);
-            define('DB_USERNAME', $db_url['user']);
-            define('DB_PASSWORD', $db_url['pass']);
-            define('DB_NAME', ltrim($db_url['path'], '/'));
-            define('DB_PORT', $db_url['port'] ?: 3306);
-            define('DB_TYPE', 'mysql');
-        }
-    } else {
-        // Fallback for Render - use PostgreSQL if RENDER env is set
-        if (getenv('RENDER')) {
-            define('DB_HOST', getenv('RENDER_POSTGRESQL_HOST') ?: 'd-labour-db');
-            define('DB_USERNAME', getenv('RENDER_POSTGRESQL_USER') ?: 'd_labour_user');
-            define('DB_PASSWORD', getenv('RENDER_POSTGRESQL_PASSWORD') ?: ''); // Password from database service
-            define('DB_NAME', getenv('RENDER_POSTGRESQL_DATABASE') ?: 'd_labour');
-            define('DB_PORT', getenv('RENDER_POSTGRESQL_PORT') ?: 5432);
-            define('DB_TYPE', 'pgsql');
-        } else {
-            // Local MySQL fallback
-            define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'localhost');
-            define('DB_USERNAME', getenv('MYSQLUSER') ?: getenv('DB_USERNAME') ?: 'root');
-            define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '');
-            define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'd_labour');
-            define('DB_PORT', getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: 3306);
-            define('DB_TYPE', 'mysql');
-        }
+// Check for Render's DATABASE_URL first (PostgreSQL)
+$database_url = getenv('DATABASE_URL');
+if ($database_url) {
+    if (strpos($database_url, 'postgres') !== false) {
+        $db_url = parse_url($database_url);
+        define('DB_HOST', $db_url['host']);
+        define('DB_USERNAME', $db_url['user']);
+        define('DB_PASSWORD', $db_url['pass']);
+        define('DB_NAME', ltrim($db_url['path'], '/'));
+        define('DB_PORT', $db_url['port'] ?: 5432);
+        define('DB_TYPE', 'pgsql');
+    } elseif (strpos($database_url, 'mysql') !== false) {
+        $db_url = parse_url($database_url);
+        define('DB_HOST', $db_url['host']);
+        define('DB_USERNAME', $db_url['user']);
+        define('DB_PASSWORD', $db_url['pass']);
+        define('DB_NAME', ltrim($db_url['path'], '/'));
+        define('DB_PORT', $db_url['port'] ?: 3306);
+        define('DB_TYPE', 'mysql');
     }
+} else {
+    // Fallback to Railway/MySQL environment variables
+    define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'localhost');
+    define('DB_USERNAME', getenv('MYSQLUSER') ?: getenv('DB_USERNAME') ?: 'root');
+    define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '');
+    define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'd_labour');
+    define('DB_PORT', getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: 3306);
+    define('DB_TYPE', 'mysql');
 }
 
 // Application Configuration
