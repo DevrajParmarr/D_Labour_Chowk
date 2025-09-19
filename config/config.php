@@ -36,14 +36,23 @@ if (getenv('RENDER_POSTGRESQL_HOST')) {
             define('DB_TYPE', 'mysql');
         }
     } else {
-        // Fallback to Railway/MySQL environment variables
-        $default_host = getenv('RENDER') ? 'd-labour-db' : 'localhost';
-        define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: $default_host);
-        define('DB_USERNAME', getenv('MYSQLUSER') ?: getenv('DB_USERNAME') ?: 'root');
-        define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '');
-        define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'd_labour');
-        define('DB_PORT', getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: 3306);
-        define('DB_TYPE', 'mysql');
+        // Fallback for Render - use PostgreSQL if RENDER env is set
+        if (getenv('RENDER')) {
+            define('DB_HOST', getenv('RENDER_POSTGRESQL_HOST') ?: 'd-labour-db');
+            define('DB_USERNAME', getenv('RENDER_POSTGRESQL_USER') ?: 'd_labour_user');
+            define('DB_PASSWORD', getenv('RENDER_POSTGRESQL_PASSWORD') ?: ''); // Password from database service
+            define('DB_NAME', getenv('RENDER_POSTGRESQL_DATABASE') ?: 'd_labour');
+            define('DB_PORT', getenv('RENDER_POSTGRESQL_PORT') ?: 5432);
+            define('DB_TYPE', 'pgsql');
+        } else {
+            // Local MySQL fallback
+            define('DB_HOST', getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'localhost');
+            define('DB_USERNAME', getenv('MYSQLUSER') ?: getenv('DB_USERNAME') ?: 'root');
+            define('DB_PASSWORD', getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: '');
+            define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'd_labour');
+            define('DB_PORT', getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: 3306);
+            define('DB_TYPE', 'mysql');
+        }
     }
 }
 
@@ -98,7 +107,9 @@ class Database {
 
         } catch (Exception $e) {
             error_log("Database Connection Error: " . $e->getMessage());
-            die("Database connection failed. Please try again later.");
+            // Don't die, set connection to null and handle gracefully
+            $this->connection = null;
+            $this->is_pdo = false;
         }
     }
 
@@ -110,6 +121,9 @@ class Database {
     }
 
     public function getConnection() {
+        if ($this->connection === null) {
+            throw new Exception("Database connection is not available.");
+        }
         if ($this->is_pdo) {
             return new MysqliWrapper($this->connection);
         } else {
@@ -215,10 +229,10 @@ if (getenv('RENDER') || getenv('DATABASE_URL')) {
         // Check if we need to initialize
         if (DB_TYPE === 'pgsql') {
             $result = $db->query("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user')");
-            $tableExists = $result->fetchColumn();
+            $tableExists = $result ? $result->fetchColumn() : false;
         } else {
             $result = $db->query("SHOW TABLES LIKE 'user'");
-            $tableExists = $result->num_rows > 0;
+            $tableExists = $result ? $result->num_rows > 0 : false;
         }
 
         if (!$tableExists) {

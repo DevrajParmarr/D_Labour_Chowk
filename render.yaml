@@ -10,6 +10,26 @@ services:
         fromDatabase:
           name: d-labour-db
           property: connectionString
+      - key: RENDER_POSTGRESQL_HOST
+        fromDatabase:
+          name: d-labour-db
+          property: host
+      - key: RENDER_POSTGRESQL_USER
+        fromDatabase:
+          name: d-labour-db
+          property: user
+      - key: RENDER_POSTGRESQL_PASSWORD
+        fromDatabase:
+          name: d-labour-db
+          property: password
+      - key: RENDER_POSTGRESQL_DATABASE
+        fromDatabase:
+          name: d-labour-db
+          property: database
+      - key: RENDER_POSTGRESQL_PORT
+        fromDatabase:
+          name: d-labour-db
+          property: port
       - key: RENDER_EXTERNAL_URL
         fromService:
           type: web
